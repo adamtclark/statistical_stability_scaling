@@ -30,13 +30,13 @@ pdf("figures/example_dynamics.pdf", width=6, height=8, colormodel = "cmyk", useD
 par(mar=c(3,4.2,1,4.8), mfrow=c(2,1), oma=c(1,0,0,0.5))
 plot(tmsim[,"time"], tmsim[,"state"], type="l", xlab="", ylab="", axes=FALSE, lwd=2)
 title(main = "a.", outer = FALSE, line = -0.5, adj=0.03, cex.main=1.5)
-axis(1, at=c(0:5)-0.1, 0:5); axis(2)
-mtext(expression(paste(italic(t))), 1, line = 2.5, cex=1.5)
+axis(1, at=c(0:5)-0.1, c(0, rep("", 5))); axis(2, at=seq(-0.4, 0.4, length=5), c("", "", 0, "", ""))
+mtext(expression(paste(time, ", ", italic(t))), 1, line = 2.5, cex=1.5)
 mtext(expression(paste(italic(x), "(", italic(t), ")")), 2, line=2.5, cex=1.5)
 abline(h=0, lty=3, lwd=2, col="gray50")
 abline(h=c(sqrt(vr), -sqrt(vr)), lty=2, lwd=2, col="dodgerblue3")
 
-text(4.95, 0, expression(paste(italic(x), "* = 0")), pos = 4, xpd=NA, cex=1.5, col="gray50")
+text(3.95, -0.07, expression(paste(equilibrium)), pos = 4, xpd=NA, cex=1.5, col="gray50")
 
 arrows(tmsim[,"time"][(which(tmsim[,"disturbed"]==1))-1], tmsim[,"state"][(which(tmsim[,"disturbed"]==1))-1],
        tmsim[,"time"][(which(tmsim[,"disturbed"]==1))-1], tmsim[,"state"][(which(tmsim[,"disturbed"]==1))],
@@ -45,13 +45,13 @@ arrows(tmsim[,"time"][(which(tmsim[,"disturbed"]==1))-1], tmsim[,"state"][(which
 arrows(1:3+0.6-0.1, -0.05, 1:3-0.1+0.03, -0.05, col="darkgoldenrod3", lwd=2, length=0.1)
 arrows(1:3+0.4-0.1, -0.05, 1:3-0.1+1-0.03, -0.05, col="darkgoldenrod3", lwd=2, length=0.1)
 
-text(1.5-0.1, -0.05, expression(paste(italic(f))), pos = 1, cex=1.5, col="darkgoldenrod3")
+text(1.17, 0.11, expression(paste(frequency)), pos = 1, cex=1.5, col="darkgoldenrod3")
 
-text(0.9, -0.48, expression(paste(italic(D), " = ", italic(d), "+", italic(sigma))), cex=1.5, pos=2, xpd=NA, col=2)
+text(0.9, -0.48, expression(paste(resistance)), cex=1.5, pos=2, xpd=NA, col=2)
 
-text(1.1, -0.42, expression(paste(over(paste(d, italic(x)), paste(italic(x), d, italic(t))), " = ", italic(-r))), cex=1.5, pos=4, xpd=NA)
+text(1.1, -0.42, expression(paste(resilience)), cex=1.5, pos=4, xpd=NA)
 
-text(4.73, -0.3, expression(paste(sqrt(paste(E, "[(", italic(x), "-", italic(x), "*", ")"^2, "]")), " = ", sqrt(paste(var, "(", italic(x), ")")))), cex=1.5, xpd=NA,
+text(4.73, -0.29, expression(paste(variability)), cex=1.5, xpd=NA,
      col="dodgerblue3")
 #dev.off()
 
@@ -72,8 +72,9 @@ xobs[tm>=11 & tm<=12]<-xstar2[tm>=11 & tm<=12]-0.1*exp(-seq(0, 5, length=11))
 par(mar=c(3,4.2,2,2.5))
 plot(tm, xobs, type="l", xlab="", ylab="", axes=F, lwd=2, ylim=c(-1.5, 0.5))
 title(main = "b.", outer = FALSE, line = -0.5, adj=0.03, cex.main=1.5)
-axis(1); axis(2, at=seq(-1.5, 0.5, by=0.5), seq(0, 2, by=0.5))
-mtext(expression(paste(italic(t))), 1, line = 2.5, cex=1.5)
+axis(1, at=seq(0, 20, by=5), c(0, rep("", 4)))
+axis(2, at=seq(-1.5, 0.5, by=0.5), c(0, rep("", 4)))
+mtext(expression(paste(time, ", ", italic(t))), 1, line = 2.5, cex=1.5)
 mtext(expression(paste(italic(N), "(", italic(t), ")")), 2, line=2.5, cex=1.5)
 
 lines(tm, xstar, lty=3, lwd=2, col="gray50")
