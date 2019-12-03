@@ -83,6 +83,7 @@ pdf("figures/temporal_grain.pdf", width=3, height=6, colormodel = "cmyk", useDin
   pltqt(estmat[ps,"tsmp"], estmat[ps,"r"], "", r, domod=FALSE, do_N = FALSE, plog = "", ylim = c(0, quantile(estmat[ps,"r"], qtlu)))
   mtext(expression(paste("resilience, ", italic(r))), 2, line=3.2)
   title("a.", line=-0.85, adj=0.02, cex.main=1.2)
+  abline(h=0, lty=3)
   
   #r naive
   ps<-is.finite(estmat[,"r_naive"])
@@ -93,6 +94,7 @@ pdf("figures/temporal_grain.pdf", width=3, height=6, colormodel = "cmyk", useDin
   pltqt(estmat[ps,"tsmp"], sqrt(estmat[ps,"r"]*(2*f*estmat[ps,"var"])), "", d_sd, domod=FALSE, do_N = FALSE, plog = "", mlog="", ylim = c(0, quantile(sqrt(estmat[ps,"r"]*(2*f*estmat[ps,"var"])), qtlu)))
   mtext(expression(paste("resistance, ", italic(sigma))), 2, line=3.2)
   title("b.", line=-0.85, adj=0.02, cex.main=1.2)
+  abline(h=0, lty=3)
   
   #naive sd
   ps<-is.finite(estmat[,"d_sd_naive"])
@@ -102,6 +104,7 @@ pdf("figures/temporal_grain.pdf", width=3, height=6, colormodel = "cmyk", useDin
   pltqt(estmat[,"tsmp"], estmat[,"var"], "", var_approx(r,f,d_sd), do_N = FALSE, domod=FALSE, plog = "", mlog="", ylim = c(0, quantile(estmat[,"var"], qtlu)))
   mtext(expression(paste("variability, ", "var(", italic(x), ")")), 2, line=3.2)
   title("c.", line=-0.85, adj=0.02, cex.main=1.2)
+  abline(h=0, lty=3)
   
   mtext("temporal frequency", 1, line = 0.5, outer=T, adj = 0.65)
 dev.off()
