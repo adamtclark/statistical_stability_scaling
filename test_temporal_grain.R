@@ -92,7 +92,7 @@ pdf("figures/temporal_grain.pdf", width=3, height=6, colormodel = "cmyk", useDin
   # sd
   ps<-is.finite(estmat[,"r"])
   pltqt(estmat[ps,"tsmp"], sqrt(estmat[ps,"r"]*(2*f*estmat[ps,"var"])), "", d_sd, domod=FALSE, do_N = FALSE, plog = "", mlog="", ylim = c(0, quantile(sqrt(estmat[ps,"r"]*(2*f*estmat[ps,"var"])), qtlu)))
-  mtext(expression(paste("resistance, ", italic(sigma))), 2, line=3.2)
+  mtext(expression(paste("resistance"^{-1}, ", ", italic(sigma))), 2, line=3.2)
   title("b.", line=-0.85, adj=0.02, cex.main=1.2)
   abline(h=0, lty=3)
   

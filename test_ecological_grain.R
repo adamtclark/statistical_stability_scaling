@@ -77,9 +77,9 @@ if(FALSE) {
       }
       
       disttm_forward<-which(c(dtmp[,"disturbed"][-1], 1)==0 & dtmp[,"disturbed"]==1)
-      if(sum(disttm_backward)>0) {
-        tmplr<-xsum[disttm_forward+1]/xsum[disttm_forward]
-        estmat[n,"r_naive"]<-mean(log(tmplr[tmplr>0])/dt)
+      if(sum(disttm_forward)>0) {
+        tmplr<-abs(xsum[disttm_forward+1])/abs(xsum[disttm_forward])
+        estmat[n,"r_naive"]<-(-mean(log(tmplr[tmplr>0])/dt))
       }
       
       #by species
@@ -93,69 +93,113 @@ if(FALSE) {
     if(i/10 == floor(i/10)) {
       cat(paste(round(i/niter,2), ";"))
     }
-  }                                        c
+  }                                        
   
   write.csv(estmat, "datout/estmat_ec.csv", row.names=F)
- } else {
+} else {
   estmat<-read.csv("datout/estmat_ec.csv")
 }
 
-padj<-c(-1, 0.02, 1.4)
+#get r vs. time:
+set.seed(1202)
+ntm<-10
+dtp<-0.1
 
-pdf("figures/ecological_grain.pdf", width=6, height=8, colormodel = "cmyk", useDingbats = FALSE)
-  par(mfrow=c(4,2), mar=c(2,4,1,1), oma=c(2,1.5,0,0))
+if(FALSE) {
+  rmat<-matrix(nrow=niter, ncol=ntm/dtp)
+  for(ii in 1:niter) {
+    m<-1
+    while(m==1 || max(abs(dtot[,-c(1:2)]))>(K*3)) {
+      dtot0<-symdynN(r = r, amu=amu, asd=asd, f=f, d=d,
+                    d_sd=d_sd, d_cov=d_cov, N=max(Nlst),
+                    sf=1, tmax=20, stochd = TRUE, stocht = TRUE, as.matrix = TRUE, amax = 0,
+                    xstart = rnorm(max(Nlst), 0, sqrt(var_approx(r, f, d_sd))))
+      x0<-unname(dtot0[nrow(dtot0),-c(1:2)])
+      
+      dtot<-symdynN(r = r, amu=amu, asd=asd, f=f, d=0,
+                    d_sd=0, d_cov=0, N=max(Nlst),
+                    sf=dtp, tmax=ntm, stochd = TRUE, stocht = TRUE, as.matrix = TRUE, amax = 0,
+                    xstart = x0+rnorm(max(Nlst), 0, d_sd))
+      m<-m+1
+    }
+    
+    datout<-data.frame(dtot)
+    rs<-abs(rowSums(datout[,-c(1:2)]))
+    
+    rest<-(-log(rs[-1]/rs[1])/seq(dtp, ntm, by=dtp))
+    rmat[ii,]<-rest
+    
+    if(ii/10 == floor(ii/10)) {
+      cat(paste(round(ii/niter,2), ";"))
+    }
+  }
+  write.csv(rmat, "datout/estmat_ec_r.csv", row.names = FALSE)
+} else {
+  rmat<-read.csv("datout/estmat_ec_r.csv")
+}
+
+
+
+padj<-c(-1, 0.02, 1.4)
+qtlu<-0.975
+
+pdf("figures/ecological_grain.pdf", width=6, height=4, colormodel = "cmyk", useDingbats = FALSE)
+  par(mfrow=c(2,2), mar=c(3,4,1,1), oma=c(0.5,1.5,0,0))
   Asq<-seq(1, max(Nlst), length=1000)
   
   #r
-  ps<-is.finite(estmat[,"r"])
-  pltqt(estmat[ps,"N"], estmat[ps,"r"], "", r, domod=FALSE, do_N = FALSE, plog = "", xlab = "", ylim=c(0, 1.1))
-  mtext(expression(paste(hat(italic(r)))), 2, line=3.2)
-  title("a.", line=padj[1], adj=padj[2], cex.main=padj[3])
+  rpuse<-seq(1, 100, by=3)
+  tmlst<-c(seq(0.1, ntm, by=0.1)[rpuse])
+  rmat2<-abs(rmat[,rpuse])
+  tmp<-t(apply(rmat2, 2, function(x) quantile(x, pnorm(-1:1), na.rm=T)))
+  pltqt(rep(tmlst, each=nrow(rmat2)), as.matrix(unlist(c(rmat2))), "", domod=FALSE, do_N = FALSE, plog = "", xlab = "", ylim=c(0,tmp[1,3]), jfac = 1)
+  lines(tmlst, tmp[,2], lwd=2, col=2, lty=3)
+  abline(h=0, lty=3)
+  mtext(expression(paste("resilience, ", italic(r))), 2, line=3.2)
+  mtext(expression(paste("time interval")), 1, line=2.3)
+  title("a.", line=padj[1], adj=padj[2]+0.06, cex.main=padj[3])
   
-  ps<-is.finite(estmat[,"r_naive"]) & estmat[,"r_naive"]>0
-  pltqt(estmat[ps,"N"], estmat[ps,"r_naive"], "", r, domod=FALSE, do_N = FALSE, plog = "", xlab = "", ylim=c(0, 1.1))
-  mtext(expression(paste(italic(r))), 2, line=3.2)
+  ps<-is.finite(estmat[,"r_naive"])
+  pltqt(estmat[ps,"N"], estmat[ps,"r_naive"], "", domod=FALSE, do_N = FALSE, plog = "", xlab = "", ylim=c(quantile(estmat[ps,"r_naive"][estmat[ps,"N"]==30], c(0.025, qtlu))), jfac = 1)
+  mtext(expression(paste("resilience, ", italic(r))), 2, line=3.2)
   title("b.", line=padj[1], adj=padj[2], cex.main=padj[3])
+  mtext(expression(paste("number of species")), 1, line=2.3)
+  abline(h=mean(estmat[ps,"r_naive"]), col=2, lwd=2, lty=3)
   
   #d_sd
   sd_N<-data.frame(Asq, sqrt((d_sd)^2*Asq*(1+(Asq-1)*d_cov/(d_sd)^2)))
   ps<-is.finite(estmat[,"r"])
-  pltqt(estmat[ps,"N"], sqrt(estmat[ps,"r"]*(2*f*estmat[ps,"var"])), "", sd_N, domod=FALSE, do_N = FALSE, plog = "", xlab = "", ylim=c(0, 1.8))
+  pltqt(estmat[ps,"N"], sqrt(estmat[ps,"r"]*(2*f*estmat[ps,"var"])), "", sd_N, domod=FALSE, do_N = FALSE, plog = "", xlab = "", ylim=c(0, 1.8), jfac = 1)
   title("c.", line=padj[1], adj=padj[2], cex.main=padj[3])
-  mtext(expression(paste(sigma, "|", hat(italic(r)))), 2, line=3.2)
+  mtext(expression(paste("resistance"^{-1}, ", ", italic(sigma))), 2, line=3.2)
+  mtext(expression(paste("number of species")), 1, line=2.3)
   
   vrest<-mean((estmat[ps,"r"]*(2*f*estmat[ps,"var"]))[estmat[ps,"N"]==1])
   cvest<-mean(estmat[estmat[,"N"]==max(Nlst),"cov_sp"]/estmat[estmat[,"N"]==max(Nlst),"var_sp"],na.rm=T)*vrest
   lines(Asq, sqrt(vrest*Asq+(Asq^2-Asq)*cvest), col=2, lwd=2, lty=3)
-  
-  ps<-is.finite(estmat[,"d_sd_naive"])
-  pltqt(estmat[ps,"N"], estmat[ps,"d_sd_naive"], "", sd_N, domod=FALSE, do_N = FALSE, plog = "", xlab = "", ylim=c(0, 1.8))
-  mtext(expression(paste(sigma)), 2, line=3.2)
-  title("d.", line=padj[1], adj=padj[2], cex.main=padj[3])
-  lines(Asq, sqrt(vrest*Asq+(Asq^2-Asq)*cvest), col=2, lwd=2, lty=3)
+  abline(h=0, lty=3)
   
   #var
   var_N<-data.frame(Asq, var_approx(r,f,d_sd)*Asq*(1+(Asq-1)*d_cov/(d_sd)^2))
-  pltqt(estmat[,"N"], estmat[,"var"], "", truev = var_N, do_N = FALSE, domod=FALSE, plog = "", mlog="", xlab = "", ylim=c(0,5))
-  title("e.", line=padj[1], adj=padj[2], cex.main=padj[3])
-  mtext(expression(paste("var(", Sigma, italic(x), ")")), 2, line=3.2)
+  pltqt(estmat[,"N"], estmat[,"var"], "", truev = var_N, do_N = FALSE, domod=FALSE, plog = "y", mlog="", xlab = "", ylim=c(0.02,10), jfac = 1)
+  title("d.", line=padj[1], adj=padj[2], cex.main=padj[3])
+  mtext(expression(paste("variability, ", "var(", italic(x), ")")), 2, line=3.2)
+  mtext(expression(paste("number of species")), 1, line=2.3)
   
   ps<-which(estmat[,"N"]==max(Nlst))
   lines(Asq, Asq*mean(estmat[ps,"var_sp"],na.rm=T)+(Asq^2-Asq)*mean(estmat[ps,"cov_sp"],na.rm=T), col=2, lwd=2, lty=3)
   
-  pltqt(estmat[,"N"], estmat[,"var_sp"], "", truev = var_approx(r,f,d_sd), do_N = FALSE, domod=FALSE, plog = "", mlog="", xlab = "", modoffset = 1e-1, ylim=c(0,0.5))
-  mtext(expression(paste("var(", italic(x), ")")), 2, line=3.2)
-  title("f.", line=padj[1], adj=padj[2], cex.main=padj[3])
-  
-  pltqt(estmat[,"N"], estmat[,"cov_sp"]/estmat[,"var_sp"], "", truev = , do_N = FALSE, domod=FALSE, plog = "", mlog="", xlab = "", modoffset = 1e-1)
-  mtext(expression(paste(italic(rho))), 2, line=3.2)
-  title("g.", line=padj[1], adj=padj[2], cex.main=padj[3])
-  abline(h=0, lty=3)
-  
-  pltqt(estmat[,"N"], estmat[,"cov_sp"]/estmat[,"var_sp"], "", truev = "", do_N = FALSE, domod=FALSE, plog = "", mlog="", xlab = "", modoffset = 1e-1, ylim=c(-0.08, 0), qtp = c(qnorm(0.25), qnorm(0.75)))
-  abline(h=mean(estmat[estmat[,"N"]==max(Nlst),"cov_sp"]/estmat[estmat[,"N"]==max(Nlst),"var_sp"],na.rm=T), lty=3, col=2, lwd=2)
-  mtext(expression(paste(italic(rho))), 2, line=3.2)
-  title("h.", line=padj[1], adj=padj[2], cex.main=padj[3])
-  mtext("number of species", 1, line = 0.5, outer=T)
-  abline(h=0, lty=3)
+  if(FALSE) {
+    pltqt(estmat[,"N"], estmat[,"cov_sp"]/estmat[,"var_sp"], "", truev = , do_N = FALSE, domod=FALSE, plog = "", mlog="", xlab = "", modoffset = 1e-1, jfac = 1)
+    mtext(expression(paste(italic(rho))), 2, line=3.2)
+    title("g.", line=padj[1], adj=padj[2], cex.main=padj[3])
+    abline(h=0, lty=3)
+    
+    pltqt(estmat[,"N"], estmat[,"cov_sp"]/estmat[,"var_sp"], "", truev = "", do_N = FALSE, domod=FALSE, plog = "", mlog="", xlab = "", modoffset = 1e-1, ylim=c(-0.08, 0), qtp = c(qnorm(0.25), qnorm(0.75)), jfac = 1)
+    abline(h=mean(estmat[estmat[,"N"]==max(Nlst),"cov_sp"]/estmat[estmat[,"N"]==max(Nlst),"var_sp"],na.rm=T), lty=3, col=2, lwd=2)
+    mtext(expression(paste(italic(rho))), 2, line=3.2)
+    title("h.", line=padj[1], adj=padj[2], cex.main=padj[3])
+    mtext("number of species", 1, line = 0.5, outer=T)
+    abline(h=0, lty=3)
+  }
 dev.off()
