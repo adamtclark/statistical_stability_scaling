@@ -229,7 +229,7 @@ pltqt<-function(tmp, x, ylab="", truev=NULL, plog="y", mlog="", domod=TRUE, do_N
   } else {
     pylim<-ylim
   }
-  plot(jitter(tmp, factor = jfac), x, xlab=xlab, ylab=ylab, col=adjustcolor(cluse, alpha.f = 0.5), cex=0.3, log=plog, ylim=pylim, pch=16, axes=F, ...)
+  plot(jitter(tmp, factor = jfac), x, xlab=xlab, ylab=ylab, col=adjustcolor(cluse, alpha.f = 0.2), cex=0.3, log=plog, ylim=pylim, pch=16, axes=F, ...)
   axis(1); axis(2, las=2); box()
   
   qtl<-t(matrix(nrow=2, unlist(tapply(x, tmp, function(x) quantile(x, pnorm(c(qtp)),na.rm=T)))))
@@ -291,7 +291,7 @@ addqt<-function(tmp, x, qtp=c(-1, 1), jfac=10, cluse="red") {
     x<-round(x, 10)
   }
   
-  points(jitter(tmp, factor = jfac), x, col=adjustcolor(cluse, alpha.f = 0.5), cex=0.3, pch=16)
+  points(jitter(tmp, factor = jfac), x, col=adjustcolor(cluse, alpha.f = 0.2), cex=0.3, pch=16)
   
   qtl<-t(matrix(nrow=2, unlist(tapply(x, tmp, function(x) quantile(x, pnorm(c(qtp)),na.rm=T)))))
   tlst<-sort(unique(tmp))

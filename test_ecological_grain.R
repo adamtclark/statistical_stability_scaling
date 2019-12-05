@@ -156,14 +156,14 @@ pdf("figures/ecological_grain.pdf", width=6, height=4, colormodel = "cmyk", useD
   lines(tmlst, tmp[,2], lwd=2, col=2, lty=3)
   abline(h=0, lty=3)
   mtext(expression(paste("resilience, ", italic(r))), 2, line=3.2)
-  mtext(expression(paste("time interval")), 1, line=2.3)
+  mtext(expression(paste("temporal grain")), 1, line=2.3)
   title("a.", line=padj[1], adj=padj[2]+0.06, cex.main=padj[3])
   
   ps<-is.finite(estmat[,"r_naive"])
   pltqt(estmat[ps,"N"], estmat[ps,"r_naive"], "", domod=FALSE, do_N = FALSE, plog = "", xlab = "", ylim=c(quantile(estmat[ps,"r_naive"][estmat[ps,"N"]==30], c(0.025, qtlu))), jfac = 1)
   mtext(expression(paste("resilience, ", italic(r))), 2, line=3.2)
   title("b.", line=padj[1], adj=padj[2], cex.main=padj[3])
-  mtext(expression(paste("number of species")), 1, line=2.3)
+  mtext(expression(paste("ecological grain")), 1, line=2.3)
   abline(h=mean(estmat[ps,"r_naive"]), col=2, lwd=2, lty=3)
   
   #d_sd
@@ -172,7 +172,7 @@ pdf("figures/ecological_grain.pdf", width=6, height=4, colormodel = "cmyk", useD
   pltqt(estmat[ps,"N"], sqrt(estmat[ps,"r"]*(2*f*estmat[ps,"var"])), "", sd_N, domod=FALSE, do_N = FALSE, plog = "", xlab = "", ylim=c(0, 1.8), jfac = 1)
   title("c.", line=padj[1], adj=padj[2], cex.main=padj[3])
   mtext(expression(paste("resistance"^{-1}, ", ", italic(sigma))), 2, line=3.2)
-  mtext(expression(paste("number of species")), 1, line=2.3)
+  mtext(expression(paste("ecological grain")), 1, line=2.3)
   
   vrest<-mean((estmat[ps,"r"]*(2*f*estmat[ps,"var"]))[estmat[ps,"N"]==1])
   cvest<-mean(estmat[estmat[,"N"]==max(Nlst),"cov_sp"]/estmat[estmat[,"N"]==max(Nlst),"var_sp"],na.rm=T)*vrest
@@ -184,7 +184,7 @@ pdf("figures/ecological_grain.pdf", width=6, height=4, colormodel = "cmyk", useD
   pltqt(estmat[,"N"], estmat[,"var"], "", truev = var_N, do_N = FALSE, domod=FALSE, plog = "y", mlog="", xlab = "", ylim=c(0.02,10), jfac = 1)
   title("d.", line=padj[1], adj=padj[2], cex.main=padj[3])
   mtext(expression(paste("variability, ", "var(", italic(x), ")")), 2, line=3.2)
-  mtext(expression(paste("number of species")), 1, line=2.3)
+  mtext(expression(paste("ecological grain")), 1, line=2.3)
   
   ps<-which(estmat[,"N"]==max(Nlst))
   lines(Asq, Asq*mean(estmat[ps,"var_sp"],na.rm=T)+(Asq^2-Asq)*mean(estmat[ps,"cov_sp"],na.rm=T), col=2, lwd=2, lty=3)
@@ -199,7 +199,7 @@ pdf("figures/ecological_grain.pdf", width=6, height=4, colormodel = "cmyk", useD
     abline(h=mean(estmat[estmat[,"N"]==max(Nlst),"cov_sp"]/estmat[estmat[,"N"]==max(Nlst),"var_sp"],na.rm=T), lty=3, col=2, lwd=2)
     mtext(expression(paste(italic(rho))), 2, line=3.2)
     title("h.", line=padj[1], adj=padj[2], cex.main=padj[3])
-    mtext("number of species", 1, line = 0.5, outer=T)
+    mtext("ecological grain", 1, line = 0.5, outer=T)
     abline(h=0, lty=3)
   }
 dev.off()

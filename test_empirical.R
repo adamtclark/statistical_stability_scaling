@@ -68,13 +68,13 @@ for(k in c(pmin, pmid, pmax)) {
 }
   
 pdf("figures/empirical_var_example.pdf", width=3, height=6, colormodel = "cmyk", useDingbats = FALSE)
-par(mfrow=c(3,1), mar=c(4.5,4.5,2,2))
+par(mfrow=c(3,1), mar=c(2,4.5,2,2), oma=c(2,0,0,0))
 for(i in 1:3) {
   varest<-varestlst[[i]]
   N<-ncol(varest)
   mns<-colMeans(varest)
   sds<-apply(varest, 2, sd)
-  matplot(1:N, mns+sds*matrix(nrow=N, rep(c(-1, 0, 1), each=N)), type="l", lty=c(2,1,2), col=1, xlab="number of species", ylab=expression(paste("var(", Sigma, italic(N), ")")))
+  matplot(1:N, mns+sds*matrix(nrow=N, rep(c(-1, 0, 1), each=N)), type="l", lty=c(2,1,2), col=1, xlab="", ylab=expression(paste("var(", Sigma, italic(N), ")")))
   text(1, max(mns+sds)-diff(range(mns+sds))*0.1, paste("rho =", round(crrlst[c(pmin, pmid, pmax)[i]],3)), pos = 4)
   
   nsp<-1:N
@@ -85,4 +85,5 @@ for(i in 1:3) {
   
   lines(nsp_lng, vlst[i]*nsp_lng+cvlst[i]*(nsp_lng^2-nsp_lng), col=2, lwd=2, lty=3)
 }
+mtext("ecological grain", side = 1, line=2.5)
 dev.off()

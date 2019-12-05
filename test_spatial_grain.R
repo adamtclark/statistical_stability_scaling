@@ -170,6 +170,8 @@ pdf("figures/spatial_grain.pdf", width=3, height=6, colormodel = "cmyk", useDing
     mtext(expression(paste("resilience, ", italic(r))), 2, line=3.2)
     
     #d_sd
+    Asq<-seq(1, max(Alst), length=1000)
+    
     sd_N<-data.frame(Asq, sqrt((d_sd)^2*Asq*(1+(Asq-1)*d_cov0/(d_sd)^2)))
     ps<-is.finite(estmat[,"r"])
     pltqt(estmat[ps,"N"], sqrt(estmat[ps,"r"]*(2*f*estmat[ps,"var"])), "", sd_N, domod=FALSE, do_N = FALSE, plog = "", xlab = "spatial grain", ylim = c(0, quantile((sqrt(estmat[ps,"r"]*(2*f*estmat[ps,"var"])))[estmat[ps,"N"]==30], qtlu)), jfac=1)
@@ -178,14 +180,13 @@ pdf("figures/spatial_grain.pdf", width=3, height=6, colormodel = "cmyk", useDing
     abline(h=0, lty=3)
     
     #variance and disturbance frequency
-    Asq<-seq(1, max(Alst), length=1000)
     var_N<-data.frame(Asq, var_approx(r,f,d_sd)*Asq*(1+(Asq-1)*d_cov0/(d_sd)^2))
     pltqt(estmat[,"N"], estmat[,"var"], "", truev = var_N, do_N = FALSE, domod=FALSE, plog = "", mlog="", xlab = "spatial grain", ylim=c(0, quantile(estmat[,"var"][estmat[,"N"]==30], qtlu)), jfac=1)
     title("c.", line=-1.2, adj=0.04, cex.main=1.4)
     mtext(expression(paste("variability, ", "var(", italic(x), ")")), 2, line=3.2)
     abline(h=0, lty=3)
     
-    mtext("spatian grain, or number of species", 1, line = 2.5, outer=F, adj = 0.8)
+    mtext("spatial grain, or ecological grain", 1, line = 2.5, outer=F, adj = 0.8)
 dev.off()
 
 pdf("figures/spatial_grain_dispersal_patch_level.pdf", width=6, height=4, colormodel = "cmyk", useDingbats = FALSE)
