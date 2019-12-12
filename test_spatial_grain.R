@@ -220,7 +220,7 @@ pdf("figures/spatial_grain_dispersal_patch_level.pdf", width=6, height=4, colorm
   title("d.", line=-1, adj=0.02, cex.main=1.2)
   
   addqt(estmat_disp[,"I"], estmat_disp[,"cor_sp"]*(2^2-2), jfac = 1, cluse="red")
-  abline(h=var_approx(r,f,d_sd), lwd=2, col="black", lty=2)
+  abline(h=var_approx(r,f,d_sd), lwd=1, col="black", lty=3)
   
   text(1.5, 0.16, expression(paste(italic(n), bar(paste("var(", italic(x[i]), ")")))), col="blue", cex=1.2)
   text(1.3, -0.075, expression(paste("(", italic(n)^2, "-", italic(n), ")", bar(paste("cov(", italic(x[i]), ",", italic(x[j]), ")")))), col="red", cex=1.2, pos = 3)

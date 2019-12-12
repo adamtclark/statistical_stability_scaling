@@ -216,7 +216,7 @@ inv_var<-function(var, r=NULL, f=NULL, d_sd=NULL) {
 }
 
 
-pltqt<-function(tmp, x, ylab="", truev=NULL, plog="y", mlog="", domod=TRUE, do_N=TRUE, plotqtl=c(0,1), modoffset=0, xlab="temporal grain", ylim=NULL, qtp=c(-1, 1), jfac=10, cluse="black", ...) {
+pltqt<-function(tmp, x, ylab="", truev=NULL, plog="y", mlog="", domod=TRUE, do_N=TRUE, plotqtl=c(0,1), modoffset=0, xlab="temporal grain", ylim=NULL, qtp=c(-1, 1), jfac=10, cluse="black", linecol="dodgerblue", ...) {
   if(var(x, na.rm=T)<1e-10) {
     #remove floating point error for plotting
     x<-round(x, 10)
@@ -240,9 +240,9 @@ pltqt<-function(tmp, x, ylab="", truev=NULL, plog="y", mlog="", domod=TRUE, do_N
   polygon(c(tlst[ps], rev(tlst[ps])), c(qtl[ps,1], rev(qtl[ps,2])), col=adjustcolor(cluse, alpha.f = 0.5), border = NA)
   if(!is.null(truev)) {
     if(length(truev)==1) {
-      abline(h=truev, lty=2, col=4, lwd=2)
+      abline(h=truev, lty=2, col=linecol, lwd=2)
     } else {
-      lines(truev, lty=2, col=4, lwd=2)
+      lines(truev, lty=2, col=linecol, lwd=2)
     }
   }
   
@@ -366,6 +366,16 @@ xt2fun<-function(x0, r, d, d_sd, dt, ndist) {
   
   stmp1
 }
+
+
+xt2fun_alt<-function(x0, r, d, d_sd, dt, ndist) {
+  tdiffs<-seq(dt/(ndist+1), dt, length=(ndist+1))
+  tdiffs<-tdiffs[-length(tdiffs)]
+  (x0^2*exp(-2*r*dt))+
+    d_sd^2*sum(exp(-2*r*(dt-tdiffs)))
+}
+
+
 
 
 #xtfunb<-function(x0, r, d, dt, ndist) {
