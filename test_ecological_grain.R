@@ -28,16 +28,17 @@ niter<-1000
 estmat<-as.matrix(data.frame(iter=rep(niter, each=length(Nlst)), tsmp=rep(Nlst, niter),
                              N=NA, n=NA,
                              var=NA, f=NA, r=NA, r_naive=NA, d_sd=NA, d_sd_naive=NA,
-                             var_sp=NA, cov_sp=NA))
+                             var_sp=NA, cov_sp=NA, d_sd_true=NA))
 
 if(FALSE) {
   n<-1
   for(i in 1:niter) {
     m<-1
     while(m==1 || max(abs(dtot[,-c(1:2)]))>(K*3)) {
-      dtot<-symdynN(r = r, amu=amu, asd=asd, f=f, d=d,
+      tmpout<-symdynN(r = r, amu=amu, asd=asd, f=f, d=d,
                     d_sd=d_sd, d_cov=d_cov, N=max(Nlst),
-                    sf=sf, tmax=tmax, stochd = TRUE, stocht = TRUE, as.matrix = TRUE, amax = 0)
+                    sf=sf, tmax=tmax, stochd = TRUE, stocht = TRUE, fullout = TRUE, amax = 0)
+      dtot<-as.matrix(tmpout$datout)
       m<-m+1
     }
     dtot<-dtot[dtot[,"time"]>20,]
@@ -53,6 +54,7 @@ if(FALSE) {
       varest<-var(xsum) #mean(xsum^2,na.rm=T)
       estmat[n,"var"]<-varest
       estmat[n,"f"]<-(max(dtmp[,"time"])-min(dtmp[,"time"]))/sum(dtmp[,"disturbed"][-1])
+      estmat[n,"d_sd_true"]<-sd(rowSums(tmpout$dquant[,smp-2,drop=FALSE]))
       
       #get parameters
       x0<-xsum[-nrow(dtmp)]
@@ -165,18 +167,21 @@ pdf("figures/ecological_grain.pdf", width=6, height=4, colormodel = "cmyk", useD
   title("b.", line=padj[1], adj=padj[2], cex.main=padj[3])
   mtext(expression(paste("ecological grain")), 1, line=2.3)
   abline(h=mean(estmat[ps,"r_naive"]), col=2, lwd=2, lty=3)
+  abline(h=r, col="dodgerblue", lwd=2, lty=2)
   
   #d_sd
   sd_N<-data.frame(Asq, sqrt((d_sd)^2*Asq*(1+(Asq-1)*d_cov/(d_sd)^2)))
   ps<-is.finite(estmat[,"r"])
-  pltqt(estmat[ps,"N"], sqrt(estmat[ps,"r"]*(2*f*estmat[ps,"var"])), "", sd_N, domod=FALSE, do_N = FALSE, plog = "", xlab = "", ylim=c(0, 1.8), jfac = 1)
+  pltqt(estmat[ps,"N"], estmat[ps,"d_sd_true"], "", sd_N, domod=FALSE, do_N = FALSE, plog = "", xlab = "", ylim=c(0, 1.8), jfac = 1)
+  
+  #pltqt(estmat[ps,"N"], sqrt(estmat[ps,"r"]*(2*f*estmat[ps,"var"])), "", sd_N, domod=FALSE, do_N = FALSE, plog = "", xlab = "", ylim=c(0, 1.8), jfac = 1)
   title("c.", line=padj[1], adj=padj[2], cex.main=padj[3])
   mtext(expression(paste("resistance"^{-1}, ", ", italic(sigma))), 2, line=3.2)
   mtext(expression(paste("ecological grain")), 1, line=2.3)
   
-  vrest<-mean((estmat[ps,"r"]*(2*f*estmat[ps,"var"]))[estmat[ps,"N"]==1])
-  cvest<-mean(estmat[estmat[,"N"]==max(Nlst),"cov_sp"]/estmat[estmat[,"N"]==max(Nlst),"var_sp"],na.rm=T)*vrest
-  lines(Asq, sqrt(vrest*Asq+(Asq^2-Asq)*cvest), col=2, lwd=2, lty=3)
+  #vrest<-mean((estmat[ps,"r"]*(2*f*estmat[ps,"var"]))[estmat[ps,"N"]==1])
+  #cvest<-mean(estmat[estmat[,"N"]==max(Nlst),"cov_sp"]/estmat[estmat[,"N"]==max(Nlst),"var_sp"],na.rm=T)*vrest
+  #lines(Asq, sqrt(vrest*Asq+(Asq^2-Asq)*cvest), col=2, lwd=2, lty=3)
   abline(h=0, lty=3)
   
   #var

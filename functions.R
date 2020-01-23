@@ -5,6 +5,17 @@ xt <- function(t0, t1, B0, r) {
 
 #1 species
 symdyn<-function(r, f, d, d_sd, sf, tmax, stochd=TRUE, stocht=TRUE, as.matrix=FALSE, oscillate_dist=FALSE) {
+  # r is intrinsic growth rate (i.e. resilience)
+  # f is the waiting time (or average waiting time) between disturbance events
+  # d is the mean size of disturbances
+  # d_sd is the standard deviation used to generate disturbances
+  # sf is the waiting time between sampling events
+  # tmax is the time series length to be simulated
+  # stochd is a logical variable, indicating whether disturbance size should be stochastic - otherwise, all disturbances are of magnitude d
+  # stocht is a logical variable, indicating whether waiting time between disturbance events should be stochastic - otherwise, waiting time is always f
+  # as.matrix indicates whether results should be returned as matrix (potentially faster for some applications)
+  # oscillate_dist is a logical variable indicating whether the sign of the disturbance should oscillate between positive and negative - ignored if stochd==TRUE
+  
   st<-seq(0, tmax, by=sf)
   nobs<-length(st)
   
@@ -172,7 +183,7 @@ symdynN<-function(r, amu, asd, f, d, d_sd, d_cov, N, sf, tmax, stochd=TRUE, stoc
   }
   
   if(fullout) {
-    return(list(datout=datout, A=A))
+    return(list(datout=datout, A=A, dquant=dquant))
   } else if(!as.matrix) {
     data.frame(datout)
   } else {
