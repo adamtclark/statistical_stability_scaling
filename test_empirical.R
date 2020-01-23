@@ -75,7 +75,15 @@ for(i in 1:3) {
   mns<-colMeans(varest)
   sds<-apply(varest, 2, sd)
   matplot(1:N, mns+sds*matrix(nrow=N, rep(c(-1, 0, 1), each=N)), type="l", lty=c(2,1,2), col=1, xlab="", ylab=expression(paste("var(", Sigma, italic(N), ")")))
-  text(1, max(mns+sds)-diff(range(mns+sds))*0.1, paste("rho =", round(crrlst[c(pmin, pmid, pmax)[i]],3)), pos = 4)
+  
+  #text(1, max(mns+sds)-diff(range(mns+sds))*0.1, paste("rho =", round(crrlst[c(pmin, pmid, pmax)[i]],3)), pos = 4)
+  if(i==1) {
+    text(1, max(mns+sds)-diff(range(mns+sds))*0.1, expression(paste(bar(italic(rho[x])), " = -0.037")), pos = 4)
+  } else if(i==2) {
+    text(1, max(mns+sds)-diff(range(mns+sds))*0.1, expression(paste(bar(italic(rho[x])), " = 0.000")), pos = 4)
+  } else if(i==3) {
+    text(1, max(mns+sds)-diff(range(mns+sds))*0.1, expression(paste(bar(italic(rho[x])), " = 0.095")), pos = 4)
+  }
   
   nsp<-1:N
   #mod<-lm(mns~nsp+I(nsp^2))
