@@ -172,7 +172,7 @@ pdf("figures/ecological_grain.pdf", width=6, height=4, colormodel = "cmyk", useD
   #d_sd
   sd_N<-data.frame(Asq, sqrt((d_sd)^2*Asq*(1+(Asq-1)*d_cov/(d_sd)^2)))
   ps<-is.finite(estmat[,"r"])
-  pltqt(estmat[ps,"N"], estmat[ps,"d_sd_true"], "", sd_N, domod=FALSE, do_N = FALSE, plog = "", xlab = "", ylim=c(0, 1.8), jfac = 1)
+  pltqt(estmat[ps,"N"], estmat[ps,"d_sd_true"], "", sd_N, domod=FALSE, do_N = FALSE, plog = "", xlab = "", ylim=c(0, quantile(estmat[ps,"d_sd_true"][estmat[ps,"N"]==30], 0.975)), jfac = 1)
   
   #pltqt(estmat[ps,"N"], sqrt(estmat[ps,"r"]*(2*f*estmat[ps,"var"])), "", sd_N, domod=FALSE, do_N = FALSE, plog = "", xlab = "", ylim=c(0, 1.8), jfac = 1)
   title("c.", line=padj[1], adj=padj[2], cex.main=padj[3])
