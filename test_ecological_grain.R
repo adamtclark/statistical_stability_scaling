@@ -14,7 +14,7 @@ r<-1 #rate of recovery
 d<-(0) #mean size of disturbance
 d_sd<-sqrt(0.1) #SD of disturbances
 f<-1 #mean frequency of disturbance
-sf<-1 #sampling frequency
+sf<-0.1 #sampling frequency
 tmax<-120 #maximum time
 d_cov<-0#(d_sd)^2/2
 amu<-(-r/2)
@@ -63,25 +63,27 @@ if(FALSE) {
       x1<-xsum[-1]
       x12<-x1^2
       
-      d_sd0<-sqrt((Nlst[j]^2-1)*d_cov+Nlst[j]*d_sd^2)
-      moddat<-data.frame(x12=x12, x0=x0, dt=dt, ndist=ndist)
-      mod2<-try(gnls(sqrt(x12)~sqrt(xt2fun(x0, r=exp(r), d=0, d_sd=exp(d_sd), dt, ndist)), data=moddat,
-                    start=c(r=log(r), d_sd=log(d_sd0)), weights = varExp(form=~fitted(.))), silent = TRUE)
+      #d_sd0<-sqrt((Nlst[j]^2-1)*d_cov+Nlst[j]*d_sd^2)
+      #moddat<-data.frame(x12=x12, x0=x0, dt=dt, ndist=ndist)
+      #mod2<-try(gnls(sqrt(x12)~sqrt(xt2fun(x0, r=exp(r), d=0, d_sd=exp(d_sd), dt, ndist)), data=moddat,
+      #              start=c(r=log(r), d_sd=log(d_sd0)), weights = varExp(form=~fitted(.))), silent = TRUE)
       
-      if(!is.character(mod2) & !is.null(mod2)) {
-        estmat[n,"d_sd"]<-exp(unname(coef(mod2)["d_sd"]))
-        estmat[n,"r"]<-exp(unname(coef(mod2)["r"]))
-      }
+      #if(!is.character(mod2) & !is.null(mod2)) {
+      #  estmat[n,"d_sd"]<-exp(unname(coef(mod2)["d_sd"]))
+      #  estmat[n,"r"]<-exp(unname(coef(mod2)["r"]))
+      #}
       
-      disttm_backward<-which(c(dtmp[,"disturbed"][-1], 0)==1 & dtmp[,"disturbed"]==0)
-      if(sum(disttm_backward)>0) {
-        estmat[n,"d_sd_naive"]<-sd(xsum[disttm_backward+1]-xsum[disttm_backward])
-      }
+      #disttm_backward<-which(c(dtmp[,"disturbed"][-1], 0)==1 & dtmp[,"disturbed"]==0)
+      #if(sum(disttm_backward)>0) {
+      #  estmat[n,"d_sd_naive"]<-sd(xsum[disttm_backward+1]-xsum[disttm_backward])
+      #}
       
       disttm_forward<-which(c(dtmp[,"disturbed"][-1], 1)==0 & dtmp[,"disturbed"]==1)
       if(sum(disttm_forward)>0) {
-        tmplr<-abs(xsum[disttm_forward+1])/abs(xsum[disttm_forward])
-        estmat[n,"r_naive"]<-(-mean(log(tmplr[tmplr>0])/dt))
+        ps<-which(sign(xsum[disttm_forward+1]) == sign(xsum[disttm_forward+1])) &
+          (abs(xsum[disttm_forward])>0.1)
+        tmplr<-abs(xsum[disttm_forward+1][ps])/abs(xsum[disttm_forward][ps])
+        estmat[n,"r_naive"]<-(-mean(log(tmplr)/dt))
       }
       
       #by species
@@ -147,7 +149,7 @@ qtlu<-0.975
 
 pdf("figures/ecological_grain.pdf", width=6, height=4, colormodel = "cmyk", useDingbats = FALSE)
   par(mfrow=c(2,2), mar=c(3,4,1,1), oma=c(0.5,1.5,0,0))
-  Asq<-seq(1, max(Nlst), length=1000)
+  Asq<-seq(1, max(Nlst), by=0.1)
   
   #r
   rpuse<-seq(1, 100, by=3)
@@ -162,17 +164,28 @@ pdf("figures/ecological_grain.pdf", width=6, height=4, colormodel = "cmyk", useD
   title("a.", line=padj[1], adj=padj[2]+0.06, cex.main=padj[3])
   
   ps<-is.finite(estmat[,"r_naive"])
-  pltqt(estmat[ps,"N"], estmat[ps,"r_naive"], "", domod=FALSE, do_N = FALSE, plog = "", xlab = "", ylim=c(quantile(estmat[ps,"r_naive"][estmat[ps,"N"]==30], c(0.025, qtlu))), jfac = 1)
+  pltqt(estmat[ps,"N"], estmat[ps,"r_naive"], "", domod=FALSE, do_N = FALSE, plog = "", xlab = "", ylim=c(0, quantile(estmat[ps,"r_naive"][estmat[ps,"N"]==30], c(qtlu))), jfac = 1)
+  #approximation of variance
+  var_est<-Asq*mean(estmat[which(estmat[,"N"]==max(Nlst)),"var_sp"],na.rm=T)+(Asq^2-Asq)*mean(estmat[which(estmat[,"N"]==max(Nlst)),"cov_sp"],na.rm=T)
+  nps<-15 #which position to expand around
+  #r at smallest scale
+  r_s1<-mean(estmat[,"r_naive"][estmat[,"N"]==nps])
+  #variance at sm
+  xmu_1<-sqrt(var_est[Asq==nps]) #mean(sqrt(estmat$var[estmat$N==1]))
+  
+  rest<-(r_s1*xmu_1/nps*Asq)/sqrt(var_est)
+  lines(Asq, rest, col=2, lwd=2, lty=3)
+  
   mtext(expression(paste("resilience, ", italic(r))), 2, line=3.2)
   title("b.", line=padj[1], adj=padj[2], cex.main=padj[3])
   mtext(expression(paste("ecological grain")), 1, line=2.3)
-  abline(h=mean(estmat[ps,"r_naive"]), col=2, lwd=2, lty=3)
+  #abline(h=mean(estmat[ps,"r_naive"]), col=2, lwd=2, lty=3)
   abline(h=r, col="dodgerblue", lwd=2, lty=2)
   
   #d_sd
   sd_N<-data.frame(Asq, sqrt((d_sd)^2*Asq*(1+(Asq-1)*d_cov/(d_sd)^2)))
-  ps<-is.finite(estmat[,"r"])
-  pltqt(estmat[ps,"N"], estmat[ps,"d_sd_true"], "", sd_N, domod=FALSE, do_N = FALSE, plog = "", xlab = "", ylim=c(0, quantile(estmat[ps,"d_sd_true"][estmat[ps,"N"]==30], 0.975)), jfac = 1)
+  #ps<-is.finite(estmat[,"r"])
+  pltqt(estmat[,"N"], estmat[,"d_sd_true"], "", sd_N, domod=FALSE, do_N = FALSE, plog = "", xlab = "", ylim=c(0, quantile(estmat[,"d_sd_true"][estmat[,"N"]==30], 0.975)), jfac = 1)
   
   #pltqt(estmat[ps,"N"], sqrt(estmat[ps,"r"]*(2*f*estmat[ps,"var"])), "", sd_N, domod=FALSE, do_N = FALSE, plog = "", xlab = "", ylim=c(0, 1.8), jfac = 1)
   title("c.", line=padj[1], adj=padj[2], cex.main=padj[3])

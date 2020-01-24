@@ -14,7 +14,7 @@ r<-1 #rate of recovery
 d<-(0) #mean size of disturbance
 d_sd<-sqrt(0.1) #SD of disturbances
 f<-1 #mean frequency of disturbance
-sf<-1 #sampling frequency
+sf<-0.1 #sampling frequency
 tmax<-120 #maximum time
 d_cov<-d_cov0<-(d_sd)^2/2
 
@@ -31,6 +31,7 @@ niter<-1000
 if(FALSE) {
   Alst<-1:30
   niter<-1000
+  d_cov<-d_cov0
   estmat<-as.matrix(data.frame(iter=rep(niter, each=length(Alst)), tsmp=rep(Alst, niter),
                      N=NA, n=NA,
                      var=NA, f=NA, r=NA, r_naive=NA, d_sd=NA, d_sd_naive=NA))
@@ -180,6 +181,8 @@ pdf("figures/spatial_grain.pdf", width=3, height=6, colormodel = "cmyk", useDing
     abline(h=0, lty=3)
     
     #variance and disturbance frequency
+    #something about sampling frequency?...
+    
     var_N<-data.frame(Asq, var_approx(r,f,d_sd)*Asq*(1+(Asq-1)*d_cov0/(d_sd)^2))
     pltqt(estmat[,"N"], estmat[,"var"], "", truev = var_N, do_N = FALSE, domod=FALSE, plog = "", mlog="", xlab = "spatial grain", ylim=c(0, quantile(estmat[,"var"][estmat[,"N"]==30], qtlu)), jfac=1)
     title("c.", line=-1.2, adj=0.04, cex.main=1.4)
@@ -222,8 +225,8 @@ pdf("figures/spatial_grain_dispersal_patch_level.pdf", width=6, height=4, colorm
   addqt(estmat_disp[,"I"], estmat_disp[,"cor_sp"]*(2^2-2), jfac = 1, cluse="red")
   abline(h=var_approx(r,f,d_sd), lwd=1, col="black", lty=3)
   
-  text(1.5, 0.16, expression(paste(italic(n), bar(paste("var(", italic(x[i]), ")")))), col="blue", cex=1.2)
-  text(1.3, -0.075, expression(paste("(", italic(n)^2, "-", italic(n), ")", bar(paste("cov(", italic(x[i]), ",", italic(x[j]), ")")))), col="red", cex=1.2, pos = 3)
+  text(1.5, 0.14, expression(paste(italic(n), bar(paste("var(", italic(x[i]), ")")))), col="blue", cex=1.2)
+  text(1.3, -0.07, expression(paste("(", italic(n)^2, "-", italic(n), ")", bar(paste("cov(", italic(x[i]), ",", italic(x[j]), ")")))), col="red", cex=1.2, pos = 3)
   
   mtext("dispersal rate", 1, line = 0.5, outer=TRUE)
 dev.off()
