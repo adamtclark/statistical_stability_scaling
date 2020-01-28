@@ -47,7 +47,7 @@ arrows(1:3+0.4-0.1, -0.05, 1:3-0.1+1-0.03, -0.05, col="darkgoldenrod3", lwd=2, l
 
 text(1.17, 0.11, expression(paste(frequency)), pos = 1, cex=1.5, col="darkgoldenrod3")
 
-text(0.9, -0.48, expression(paste(resistance)), cex=1.5, pos=2, xpd=NA, col=2)
+text(0.9, -0.48, expression(paste(resistance^-1)), cex=1.5, pos=2, xpd=NA, col=2)
 
 text(1.1, -0.42, expression(paste(resilience)), cex=1.5, pos=4, xpd=NA)
 
@@ -87,8 +87,8 @@ text(24.99, -1.5, expression(paste(italic(N)[C],"*")), pos = 4, xpd=NA, cex=1.5,
 arrows(10.9, -0.2, 10.9, -0.65, col="forestgreen", lwd=2, length=0.1)
 arrows(20.9, -1, 20.9, -1.5, col="darkorchid4", lwd=2, length=0.1)
 
-text(10.9, -0.66, expression(paste(robustness)), pos = 2, cex=1.5, col="forestgreen")
-text(20.9, -1.5, expression(paste(persistence)), cex=1.5, pos=2, xpd=NA, col="darkorchid4")
+text(10.9, -0.66, expression(paste(robustness^-1)), pos = 2, cex=1.5, col="forestgreen")
+text(20.9, -1.5, expression(paste(persistence^-1)), cex=1.5, pos=2, xpd=NA, col="darkorchid4")
 
 dev.off()
 
