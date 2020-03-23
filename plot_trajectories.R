@@ -1,30 +1,26 @@
-error
-rm(list=ls())
-setwd("~/Dropbox/Projects/052_GFO_2019/src/simulation_study/")
+#plots Figure 2 in the main text
+
+#load functions and packages
 source("functions.R")
-source("~/Dropbox/Rfunctions/logit_funs.R")
 require(mvtnorm)
 require(nlme)
 require(deSolve)
 require(viridis)
 
-
 #test diffusion approx
 K<-1 #carrying capacity
 r<-1 #rate of recovery
-d<-(0) #mean size of disturbance
-d_sd<-sqrt(0.1) #SD of disturbances
-f<-1 #mean frequency of disturbance
-sf<-0.01 #sampling frequency
-tmax<-120 #maximum time
-
+d<-(0) #mean size of disturbance (mu in text)
+d_sd<-sqrt(0.1) #SD of disturbances (sigma in text)
+f<-1 #average time between disturbances (1/lambda in text)
+tmax<-120 #maximum time for simulation
 
 ##### Run simulations
-tm<-0.1
-N<-16
-M<-16
+tm<-0.1 #sampling frequency
+N<-16 #number of species
+M<-16 #number of patches
 
-set.seed(191002)
+set.seed(191002) #set random seed
 tmsim<-symdyn(r, f, d, d_sd, sf=tm, tmax)
 tmsim<-tmsim[tmsim$time>=20,]
 ecsim<-symdynN(r, amu=(-0.1), asd=0, f, d, d_sd, d_cov=(d_sd^2)/2, N=N, sf=tm, tmax)
@@ -32,9 +28,8 @@ ecsim<-ecsim[ecsim$time>=20,]
 spsim<-symdynN(r, amu=0, asd=0, f, d, d_sd, d_cov=(d_sd^2)/2, N=M, sf=tm, tmax, Ifrac = 0.1, dffun = df_col)
 spsim<-spsim[spsim$time>=20,]
 
-#transform to N
+#transform x to N
 tmsim$state[tmsim$state<(-K)]<-(-K)
-
 
 ##### Plot examples
 y0<-(-120)
@@ -48,6 +43,7 @@ colmd<-4
 ylm<-c(-1.3, 1.3)
 yscl<-diff(range(ylm))/127
 
+#function for plotting circles
 cifun<-function(r, x0, y0, yscl=1) {
   pisq<-seq(0, 2*pi, length=200)
   xsq<-cos(pisq)*r+x0

@@ -98,6 +98,27 @@ xtN <- function(t0, t1, B0, odepars, dffun, nsteps=2) {
 
 #n species or patches
 symdynN<-function(r, amu, asd, f, d, d_sd, d_cov, N, sf, tmax, stochd=TRUE, stocht=TRUE, as.matrix=FALSE, amax=0, amin=-Inf, Ifrac=NULL, dffun=df, fullout=FALSE, xstart=NULL) {
+  # r is intrinsic growth rate (i.e. resilience)
+  # amu is the mean interaction strength
+  # asd is the standard deviation used to generate interaction strengths
+  # f is the waiting time (or average waiting time) between disturbance events
+  # d is the mean size of disturbances
+  # d_sd is the standard deviation used to generate disturbances
+  # d_cov is the covariance for generating disturbances
+  # N is the number of species
+  # sf is the waiting time between sampling events
+  # tmax is the time series length to be simulated
+  # stochd is a logical variable, indicating whether disturbance size should be stochastic - otherwise, all disturbances are of magnitude d
+  # stocht is a logical variable, indicating whether waiting time between disturbance events should be stochastic - otherwise, waiting time is always f
+  # as.matrix indicates whether results should be returned as matrix (potentially faster for some applications)
+  # oscillate_dist is a logical variable indicating whether the sign of the disturbance should oscillate between positive and negative - ignored if stochd==TRUE
+  # amax is the maximum value for interaction coefficiets
+  # amin is the minimum value for interaction coefficiets
+  # Ifrac is the dispersal rate
+  # dffun is the function handed to the ODE solver
+  # fullout is a logical, determining whether the full output or just a summary is returned
+  # xstart is an optional vector of starting abundances
+  
   st<-seq(0, tmax, by=sf)
   nobs<-length(st)
   
