@@ -1,5 +1,6 @@
 #plots Figure 3 in the main text
 
+#load functions and packages
 source("functions.R")
 require(mvtnorm)
 require(nlme)
@@ -98,6 +99,7 @@ pdf("figures/temporal_grain.pdf", width=3, height=6, colormodel = "cmyk", useDin
   
   #corrected d_sd
   ps<-is.finite(estmat[,"r"])
+  #back-calculate from corrected r value
   pltqt(estmat[ps,"tsmp"], sqrt(estmat[ps,"r"]*(2*f*estmat[ps,"var"])), "", d_sd, domod=FALSE, do_N = FALSE, plog = "", mlog="", ylim = c(0, 0.6))
   mtext(expression(paste("resistance"^{-1}, ", ", italic(sigma))), 2, line=3.2)
   title("b.", line=-0.85, adj=0.02, cex.main=1.2)
