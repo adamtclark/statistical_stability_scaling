@@ -1,9 +1,10 @@
+#function for calculating xt given starting state B0
 xt <- function(t0, t1, B0, r) {
   dt<-(t1-t0)
   exp(-r*dt)*B0
 }
 
-#1 species
+#simulate dynamics for 1 species
 symdyn<-function(r, f, d, d_sd, sf, tmax, stochd=TRUE, stocht=TRUE, as.matrix=FALSE, oscillate_dist=FALSE) {
   # r is intrinsic growth rate (i.e. resilience)
   # f is the waiting time (or average waiting time) between disturbance events
@@ -81,22 +82,26 @@ symdyn<-function(r, f, d, d_sd, sf, tmax, stochd=TRUE, stocht=TRUE, as.matrix=FA
   }
 }
 
+#differential equation for competition among N species
 df<-function(time, state, pars) {
   list(c(t(as.matrix(state))%*%pars$A))
 }
 
+#differential equation for system with dispersal.
+#note that K is set to 1 for this example
 df_col<-function(time, state, pars) {
-  list(diag(pars$A)*state-pmax(pars$Ifrac*(state+1),0)+pars$Ifrac*mean(pmax(state+1, 0)))
-  #list(diag(pars$A)*state-pars$Ifrac*state+pars$Ifrac*mean(state))
+  Ksim<-1 #carrying capacity
+  list(diag(pars$A)*state-pmax(pars$Ifrac*(state+Ksim),0)+pars$Ifrac*mean(pmax(state+Ksim, 0)))
 }
 
+#simulate an ODE given paramters, starting value, and times
 xtN <- function(t0, t1, B0, odepars, dffun, nsteps=2) {
   out<-ode(y=B0, times=seq(t0, t1, length=nsteps), parms=odepars, func = dffun)
   out[-1,-1]
 }
 
 
-#n species or patches
+#simulate dynamics for N species or patches
 symdynN<-function(r, amu, asd, f, d, d_sd, d_cov, N, sf, tmax, stochd=TRUE, stocht=TRUE, as.matrix=FALSE, amax=0, amin=-Inf, Ifrac=NULL, dffun=df, fullout=FALSE, xstart=NULL) {
   # r is intrinsic growth rate (i.e. resilience)
   # amu is the mean interaction strength
@@ -105,7 +110,7 @@ symdynN<-function(r, amu, asd, f, d, d_sd, d_cov, N, sf, tmax, stochd=TRUE, stoc
   # d is the mean size of disturbances
   # d_sd is the standard deviation used to generate disturbances
   # d_cov is the covariance for generating disturbances
-  # N is the number of species
+  # N is the number of species or patches
   # sf is the waiting time between sampling events
   # tmax is the time series length to be simulated
   # stochd is a logical variable, indicating whether disturbance size should be stochastic - otherwise, all disturbances are of magnitude d
@@ -213,55 +218,29 @@ symdynN<-function(r, amu, asd, f, d, d_sd, d_cov, N, sf, tmax, stochd=TRUE, stoc
 }
 
 
-
-#mean state immediately before next disturbance
-mu_dist_fun<-function(r, K, f, d) {
-  K*d*exp(-r*f)/(1-exp(-r*f))
-}
-
-#mean state
-mu_state<-function(r, K, f, d) {
-  (K*d)/(f*r)
-}
-
-#variance state
+#variance of state
 var_state<-function(r, K, f, d, d_sd) {
   ((K*d)/(f*r)+d_sd^2)/(2*r*f)
 }
 
+#variance for cases wehre d=0
 var_approx<-function(r, f, d_sd) {
   (d_sd^2)/(2*r*f)
 }
 
-
-#inverse functions
-inv_var<-function(var, r=NULL, f=NULL, d_sd=NULL) {
-  ## var = (d_sd^2)/(2*r*f)
-  
-  if(is.null(r)) {
-    return(d_sd^2/(2*f*var))
-  } else if(is.null(f)) {
-    return(d_sd^2/(2*r*var))
-  } else if(is.null(d_sd)) {
-    return(sqrt(var*(2*r*f)))
-  }
-}
-
-
-pltqt<-function(tmp, x, ylab="", truev=NULL, plog="y", mlog="", domod=TRUE, do_N=TRUE, plotqtl=c(0,1), modoffset=0, xlab="temporal grain", ylim=NULL, qtp=c(-1, 1), jfac=10, cluse="black", linecol="dodgerblue", ...) {
+#plot simulation results
+pltqt<-function(tmp, x, ylab="", truev=NULL, plog="y", mlog="", domod=TRUE, do_N=TRUE, plotqtl=c(0,1), modoffset=0, ylim=NULL, qtp=c(-1, 1), jfac=10, cluse="black", linecol="dodgerblue", xlab="", ...) {
   if(var(x, na.rm=T)<1e-10) {
     #remove floating point error for plotting
     x<-round(x, 10)
   }
   
-  #op<-par(no.readonly = TRUE)
-  #par(mar=c(4,4,2,4))
   if(is.null(ylim)) {
     pylim<-quantile(x, plotqtl, na.rm=T)
   } else {
     pylim<-ylim
   }
-  plot(jitter(tmp, factor = jfac), x, xlab=xlab, ylab=ylab, col=adjustcolor(cluse, alpha.f = 0.2), cex=0.3, log=plog, ylim=pylim, pch=16, axes=F, ...)
+  plot(jitter(tmp, factor = jfac), x, xlab=xlab, ylab=ylab, col=adjustcolor(cluse, alpha.f = 0.2), cex=0.3, log=plog, ylim=pylim, pch=16, axes=F, type="n", ...)
   axis(1); axis(2, las=2); box()
   
   qtl<-t(matrix(nrow=2, unlist(tapply(x, tmp, function(x) quantile(x, pnorm(c(qtp)),na.rm=T)))))
@@ -314,16 +293,16 @@ pltqt<-function(tmp, x, ylab="", truev=NULL, plog="y", mlog="", domod=TRUE, do_N
     mtext("frac. simulations", 4, line=2.2)
     abline(h=c(0, 1), lty=3, col=1)
   }
-  #par(op)
 }
 
+#add a new interval to an existing plot
 addqt<-function(tmp, x, qtp=c(-1, 1), jfac=10, cluse="red") {
   if(var(x, na.rm=T)<1e-10) {
     #remove floating point error for plotting
     x<-round(x, 10)
   }
   
-  points(jitter(tmp, factor = jfac), x, col=adjustcolor(cluse, alpha.f = 0.2), cex=0.3, pch=16)
+  points(jitter(tmp, factor = jfac), x, col=adjustcolor(cluse, alpha.f = 0.2), cex=0.3, pch=16, type="n")
   
   qtl<-t(matrix(nrow=2, unlist(tapply(x, tmp, function(x) quantile(x, pnorm(c(qtp)),na.rm=T)))))
   tlst<-sort(unique(tmp))
@@ -334,48 +313,8 @@ addqt<-function(tmp, x, qtp=c(-1, 1), jfac=10, cluse="red") {
 }
 
 
-xtfun_bound<-function(x0, r, d, dt, ndist) {
-  r<-ilogit(r)*5
-  
-  if(length(dt)==1) {
-    dt<-rep(dt, length(x0))
-  }
-  if(length(r)==1) {
-    r<-rep(r, length(x0))
-  }
-  tstep<-dt/(ndist+1)
-  stmp1<-x0*exp(-r*tstep)
-  if(max(ndist)>0) {
-    for(k in 1:max(ndist)) {
-      ps<-which(ndist>=k)
-      stmp1[ps]<-(stmp1[ps]+d)*exp(-r[ps]*tstep[ps])
-    }
-  }
-  
-  stmp1
-}
-
-
-
-xtfun<-function(x0, r, d, dt, ndist) {
-  if(length(d)==1) {
-    d<-rep(d, length(x0))
-  }
-  if(length(r)==1) {
-    r<-rep(r, length(x0))
-  }
-  tstep<-dt/(ndist+1)
-  stmp1<-x0*exp(-r*tstep)
-  if(max(ndist)>0) {
-    for(k in 1:max(ndist)) {
-      ps<-which(ndist>=k)
-      stmp1[ps]<-(stmp1[ps]+d[ps])*exp(-r[ps]*tstep[ps])
-    }
-  }
-  
-  stmp1
-}
-
+#function for solving for paramter values from observed time series
+#equivalent to Eq. S39 in the appendix.
 xt2fun<-function(x0, r, d, d_sd, dt, ndist) {
   if(length(dt)==1) {
     dt<-rep(dt, length(x0))
@@ -400,29 +339,3 @@ xt2fun<-function(x0, r, d, d_sd, dt, ndist) {
 }
 
 
-xt2fun_alt<-function(x0, r, d, d_sd, dt, ndist) {
-  tdiffs<-seq(dt/(ndist+1), dt, length=(ndist+1))
-  tdiffs<-tdiffs[-length(tdiffs)]
-  (x0^2*exp(-2*r*dt))+
-    d_sd^2*sum(exp(-2*r*(dt-tdiffs)))
-}
-
-
-
-
-#xtfunb<-function(x0, r, d, dt, ndist) {
-#  stmp<-rep(0, length(x0))
-#  if(length(dt)==1) {
-#    dt<-rep(dt, length(x0))
-#  }
-#  if(length(r)==1) {
-#    r<-rep(r, length(x0))
-#  }
-#  dttmp<-dt/(ndist+1)
-#  for(k in 1:max(ndist)) {
-#    xps<-ndist>=k
-#    stmp[xps]<-stmp[xps]+exp(-k*r[xps]*dttmp[xps])
-#  }
-#  
-#  x0*exp(-r*dt)+d*stmp
-#}
