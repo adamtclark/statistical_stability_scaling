@@ -5,6 +5,8 @@ source("functions.R")
 require(mvtnorm)
 require(nlme)
 require(deSolve)
+collst_attributes<-c("firebrick3", "darkgoldenrod3", "dodgerblue2", "mediumpurple2", "olivedrab4", "springgreen4")
+#resistance; resilience; invariability; frequency; persistence; robustness
 
 set.seed(1202) #set random seed
 
@@ -13,7 +15,7 @@ r<-1 #rate of recovery
 d<-(0) #mean size of disturbance (mu in text)
 d_sd<-sqrt(0.1) #SD of disturbances (sigma in text)
 f<-1 #average time between disturbances (1/lambda in text)
-sf<-0.1 #sampling frequency
+sf<-0.1 #sampling interval
 tmax<-120 #maximum time for simulation
 d_cov<-d_cov0<-(d_sd)^2/2 #covariance in disturbance size among patches
 
@@ -179,7 +181,7 @@ pdf("figures/spatial_grain.pdf", width=3, height=6, colormodel = "cmyk", useDing
     
     #r
     ps<-is.finite(estmat[,"r"])
-    pltqt(estmat[ps,"N"], estmat[ps,"r"], "", r, domod=FALSE, do_N = FALSE, plog = "", xlab = "spatial grain", ylim = c(0.9, 1.1), jfac=1)
+    pltqt(estmat[ps,"N"], estmat[ps,"r"], "", r, domod=FALSE, do_N = FALSE, plog = "", xlab = "spatial grain", ylim = c(0.9, 1.1), jfac=1, cluse = collst_attributes[2])
     title("a.", line=-1.2, adj=0.08, cex.main=1.4)
     mtext(expression(paste("resilience, ", italic(r))), 2, line=3.2)
     
@@ -190,20 +192,18 @@ pdf("figures/spatial_grain.pdf", width=3, height=6, colormodel = "cmyk", useDing
     sd_N<-data.frame(A=Asq, d_sd=sqrt((d_sd)^2*Asq*(1+(Asq-1)*d_cov0/(d_sd)^2)))
     ps<-is.finite(estmat[,"r"])
     #back-calculate from corrected r value
-    pltqt(estmat[ps,"N"], sqrt(estmat[ps,"r"]*(2*f*estmat[ps,"var"])), "", sd_N, domod=FALSE, do_N = FALSE, plog = "", xlab = "spatial grain", ylim = c(0, 8), jfac=1)
+    pltqt(estmat[ps,"N"], sqrt(estmat[ps,"r"]*(2*f*estmat[ps,"var"])), "", sd_N, domod=FALSE, do_N = FALSE, plog = "", xlab = "spatial grain", ylim = c(0, 8), jfac=1, cluse = collst_attributes[1])
     title("b.", line=-1.2, adj=0.04, cex.main=1.4)
     mtext(expression(paste("resistance"^{-1}, ", ", italic(sigma))), 2, line=3.2)
-    abline(h=0, lty=3)
     
     #variance
     #scaling relationship for variance
     var_N<-data.frame(Asq, var_approx(r,f,d_sd)*Asq*(1+(Asq-1)*d_cov0/(d_sd)^2))
-    pltqt(estmat[,"N"], estmat[,"var"], "", truev = var_N, do_N = FALSE, domod=FALSE, plog = "", mlog="", xlab = "spatial grain", ylim=c(0, 28), jfac=1)
+    pltqt(estmat[,"N"], estmat[,"var"], "", truev = var_N, do_N = FALSE, domod=FALSE, plog = "", mlog="", xlab = "spatial grain", ylim=c(0, 28), jfac=1, cluse = collst_attributes[3])
     title("c.", line=-1.2, adj=0.04, cex.main=1.4)
     mtext(expression(paste("invariability"^-1, ", ", "var(", italic(x), ")")), 2, line=3.2)
-    abline(h=0, lty=3)
     
-    mtext("spatial grain, or ecological grain", 1, line = 2.5, outer=F, adj = 0.8)
+    mtext("spatial scale", 1, line = 2.5, outer=F, adj = 0.5)
 dev.off()
 
 pdf("figures/spatial_grain_dispersal_patch_level.pdf", width=6, height=4, colormodel = "cmyk", useDingbats = FALSE)
@@ -211,36 +211,33 @@ pdf("figures/spatial_grain_dispersal_patch_level.pdf", width=6, height=4, colorm
   
   #r
   ps<-is.finite(estmat_disp[,"r"])
-  pltqt(estmat_disp[ps,"I"], estmat_disp[ps,"r"], "", r, domod=FALSE, do_N = FALSE, plog = "", xlab = "dispersal rate", ylim = c(0.9, 1.12), qtp = c(-1, 1), jfac = 1)
+  pltqt(estmat_disp[ps,"I"], estmat_disp[ps,"r"], "", r, domod=FALSE, do_N = FALSE, plog = "", xlab = "dispersal rate", ylim = c(0.9, 1.12), qtp = c(-1, 1), jfac = 1, cluse = collst_attributes[2])
   mtext(expression(paste("meta. resilience")), 2, line=3.1)
   title("a.", line=-1, adj=0.04, cex.main=1.2)
   
   #d_sd
   sd_N<-sqrt((d_sd)^2*A) #recall, d_cov=0
   ps<-is.finite(estmat_disp[,"r"])
-  pltqt(estmat_disp[ps,"I"], sqrt(estmat_disp[ps,"r"]*(2*f*estmat_disp[ps,"var"])), "", sd_N, domod=FALSE, do_N = FALSE, plog = "", xlab = "dispersal rate", ylim=c(0.35, 0.55), jfac = 1)
+  pltqt(estmat_disp[ps,"I"], sqrt(estmat_disp[ps,"r"]*(2*f*estmat_disp[ps,"var"])), "", sd_N, domod=FALSE, do_N = FALSE, plog = "", xlab = "dispersal rate", ylim=c(0.38, 0.52), jfac = 1, cluse = collst_attributes[1])
   mtext(expression(paste("meta. resistance"^{-1})), 2, line=3.1)
   title("b.", line=-1, adj=0.04, cex.main=1.2)
   
   #variance
   var_N<-var_approx(r,f,d_sd)*A #recall, d_cov=0
-  pltqt(estmat_disp[,"I"], estmat_disp[,"var"], "", truev = var_N, do_N = FALSE, domod=FALSE, plog = "", mlog="", xlab = "dispersal rate", ylim = c(0.055, 0.15), jfac = 1)
+  pltqt(estmat_disp[,"I"], estmat_disp[,"var"], "", truev = var_N, do_N = FALSE, domod=FALSE, plog = "", mlog="", xlab = "dispersal rate", ylim = c(0.07, 0.13), jfac = 1, cluse = collst_attributes[3])
   mtext(expression(paste("meta. invariability"^-1)), 2, line=3.1)
   title("c.", line=-1, adj=0.04, cex.main=1.2)
   
   
-  btmp<-c(quantile(estmat_disp[estmat_disp[,"I"]==0,"cor_sp"]*(2^2-2), c(0)),
-          quantile(estmat_disp[estmat_disp[,"I"]==0,"var_sp"]*2, c(1)))
-  
-  pltqt(estmat_disp[,"I"], estmat_disp[,"var_sp"]*2, "", do_N = FALSE, domod=FALSE, plog = "", mlog="xy", xlab = "dispersal rate", modoffset = 1e-1, jfac = 1, ylim = btmp, cluse="blue")
+  pltqt(estmat_disp[,"I"], estmat_disp[,"var_sp"]*2, "", do_N = FALSE, domod=FALSE, plog = "", mlog="xy", xlab = "dispersal rate", modoffset = 1e-1, jfac = 1, ylim = c(-0.02, 0.14), cluse=collst_attributes[3])
   mtext(expression(paste("patch-level invariability"^-1)), 2, line=3.1)
   title("d.", line=-1, adj=0.02, cex.main=1.2)
   
-  addqt(estmat_disp[,"I"], estmat_disp[,"cor_sp"]*(2^2-2), jfac = 1, cluse="red")
+  addqt(estmat_disp[,"I"], estmat_disp[,"cor_sp"]*(2^2-2), jfac = 1, cluse="darkblue", pltdens = NA, border=NA)
   abline(h=var_approx(r,f,d_sd), lwd=1, col="black", lty=3)
   
-  text(1.5, 0.14, expression(paste(italic(n), bar(paste("var(", italic(x[i]), ")")))), col="blue", cex=1.2)
-  text(1.3, -0.07, expression(paste("(", italic(n)^2, "-", italic(n), ")", bar(paste("cov(", italic(x[i]), ",", italic(x[j]), ")")))), col="red", cex=1.2, pos = 3)
+  text(1.5, 0.10, expression(paste(italic(n), (paste("var(", italic(x[i]), ")")))), col=collst_attributes[3], cex=1.2)
+  text(1.3, -0.03, expression(paste("(", italic(n)^2, "-", italic(n), ")", (paste("cov(", italic(x[i]), ",", italic(x[j]), ")")))), col="darkblue", cex=1.2, pos = 3)
   
   mtext("dispersal rate", 1, line = 0.5, outer=TRUE)
 dev.off()

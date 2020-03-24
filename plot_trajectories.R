@@ -1,11 +1,11 @@
 #plots Figure 2 in the main text
+#rm(list=ls())
 
 #load functions and packages
 source("functions.R")
 require(mvtnorm)
 require(nlme)
 require(deSolve)
-require(viridis)
 
 #test diffusion approx
 K<-1 #carrying capacity
@@ -16,7 +16,7 @@ f<-1 #average time between disturbances (1/lambda in text)
 tmax<-120 #maximum time for simulation
 
 ##### Run simulations
-tm<-0.1 #sampling frequency
+tm<-0.1 #sampling interval
 N<-16 #number of species
 M<-16 #number of patches
 
@@ -36,8 +36,8 @@ y0<-(-120)
 dy<-19
 dx<-0.4
 x0<-(-(dx*4)/2)
-collst1<-adjustcolor(c(magma(max(c(N, M)))), alpha.f = 0.8)
-collst2<-adjustcolor(c(viridis(max(c(N, M)))), alpha.f = 0.8)
+collst1<-adjustcolor(c(grey.colors(max(c(N, M)))), alpha.f = 0.8) #adjustcolor(c(magma(max(c(N, M)))), alpha.f = 0.8)
+collst2<-adjustcolor(c(grey.colors(max(c(N, M)))), alpha.f = 0.8) #adjustcolor(c(viridis(max(c(N, M)))), alpha.f = 0.8)
 col0<-adjustcolor(1, alpha.f = 0.8)
 colmd<-4
 ylm<-c(-1.3, 1.3)
@@ -69,11 +69,12 @@ pdf("figures/trajectories.pdf", width=10, height=7.5, colormodel = "cmyk", useDi
   citmp<-cifun(r=2*dy, x0 = y0+dy*2, y0 = 0, yscl = yscl)
   lines(citmp, xpd=NA)
   citmp2<-cifun(r=2*dy*0.9, x0 = y0+dy*2, y0 = 0, yscl = yscl)
+  citmp3<-cifun(r=2*dy*0.9*0.8, x0 = y0+dy*2, y0 = 0, yscl = yscl)
   nps<-round(seq(1, nrow(citmp2), length=13))[-13]
   text(x=citmp2$x[nps], y=citmp2$y[nps], c(3:1, 12:4), xpd=NA)
-  arrows(y0+dy*2, 0, citmp2$x[nps], citmp2$y[nps], xpd=NA, length = 0.1, col="darkred", lwd=2, lend=4)
+  arrows(y0+dy*2, 0, citmp3$x[nps], citmp3$y[nps], xpd=NA, length = 0.08, col=1, lwd=2, lend=4)
   
-  matplot(ecsim$time-20, ecsim[,-c(1:2)], xlab="", ylab="", type="l", ylim=ylm, col=collst1, lty=1); abline(h=0, lty=3)
+  matplot(ecsim$time-20, ecsim[,-c(1:2)], xlab="", ylab="", type="l", ylim=ylm, col=c(collst1[1:(ncol(ecsim)-3)],1), lty=1); abline(h=0, lty=3)
   mtext("Spatial Scale", side = 3, line=1, cex=1.2)
   mtext(expression(paste(italic(x))), side = 2, line=2.2)
   title("d.", line=-1.2, adj=0.04, cex.main=1.4)
@@ -81,7 +82,7 @@ pdf("figures/trajectories.pdf", width=10, height=7.5, colormodel = "cmyk", useDi
   for(i in 1:4) {
     for(j in 1:4) {
       if(i==1 & j==4) {
-        coluse<-"darkred"
+        coluse<-1
       } else {
         coluse<-"grey"
       }
@@ -89,13 +90,13 @@ pdf("figures/trajectories.pdf", width=10, height=7.5, colormodel = "cmyk", useDi
     }
   }
   
-  matplot(spsim$time-20, spsim[,-c(1:2)], xlab="", ylab="", type="l", ylim=ylm, col=collst2, lty=1); abline(h=0, lty=3)
+  matplot(spsim$time-20, spsim[,-c(1:2)], xlab="", ylab="", type="l", ylim=ylm, col=c(collst2[1:(ncol(spsim)-3)],1), lty=1); abline(h=0, lty=3)
   mtext("Ecological Scale", side = 3, line=1, cex=1.2)
   mtext(expression(paste(italic(x))), side = 2, line=2.2)
   
   for(i in 1:N) {
     if(i==2) {
-      coluse<-"darkred"
+      coluse<-1
     } else {
       coluse<-"grey"
     }
@@ -106,23 +107,24 @@ pdf("figures/trajectories.pdf", width=10, height=7.5, colormodel = "cmyk", useDi
   
   #halfs
   ps<-tmsim$time%in%seq(20, 120, by=1)
-  plot(tmsim$time[ps]-20, tmsim$state[ps], xlab="", ylab="", type="l", ylim=ylm, col=col0); abline(h=0, lty=3)
+  plot(tmsim$time[ps]-20, tmsim$state[ps], xlab="", ylab="", type="l", ylim=ylm, col=1); abline(h=0, lty=3)
   mtext(expression(paste(italic(x))), side = 2, line=2.2)
   citmp<-cifun(r=2*dy, x0 = y0+dy*2, y0 = 0, yscl = yscl)
   lines(citmp, xpd=NA)
   citmp2<-cifun(r=2*dy*0.9, x0 = y0+dy*2, y0 = 0, yscl = yscl)
+  citmp3<-cifun(r=2*dy*0.9*0.8, x0 = y0+dy*2, y0 = 0, yscl = yscl)
   nps<-round(seq(1, nrow(citmp2), length=13))[-13]
   text(x=citmp2$x[nps], y=citmp2$y[nps], c(3:1, 12:4), xpd=NA)
-  arrows(y0+dy*2, 0, citmp2$x[nps][c(1,4,7,10)], citmp2$y[nps][c(1,4,7,10)], xpd=NA, length = 0.1, col="darkred", lwd=2, lend=4)
+  arrows(y0+dy*2, 0, citmp3$x[nps][c(1,4,7,10)], citmp3$y[nps][c(1,4,7,10)], xpd=NA, length = 0.08, col=1, lwd=2, lend=4)
   title("b.", line=-1.2, adj=0.04, cex.main=1.4)
   
   matplot(spsim$time-20, cbind(rowMeans(spsim[,1:4+2]), rowMeans(spsim[,5:8+2]), rowMeans(spsim[,9:12+2]), rowMeans(spsim[,13:16+2])),
-          xlab="", ylab="", type="l", ylim=ylm, col=collst1[c(1,4,8,16)], lty=1); abline(h=0, lty=3)
+          xlab="", ylab="", type="l", ylim=ylm, col=c(collst1[c(16,8,4)],1), lty=1); abline(h=0, lty=3)
   mtext(expression(paste(Sigma, italic(x), "/", italic(A))), side = 2, line=2.2)
   for(i in 1:2) {
     for(j in 1:2) {
       if(i==1 & j==2) {
-        coluse<-"darkred"
+        coluse<-1
       } else {
         coluse<-"grey"
       }
@@ -132,13 +134,13 @@ pdf("figures/trajectories.pdf", width=10, height=7.5, colormodel = "cmyk", useDi
   title("e.", line=-1.2, adj=0.04, cex.main=1.4)
   
   matplot(ecsim$time-20, cbind(rowMeans(ecsim[,1:4+2]), rowMeans(ecsim[,5:8+2]), rowMeans(ecsim[,9:12+2]), rowMeans(ecsim[,13:16+2])),
-          xlab="", ylab="", type="l", ylim=ylm, col=collst2[c(1,4,8,16)], lty=1); abline(h=0, lty=3)
+          xlab="", ylab="", type="l", ylim=ylm, col=c(collst2[c(16,8,4)], 1), lty=1); abline(h=0, lty=3)
   mtext(expression(paste(Sigma, italic(x), "/", italic(M))), side = 2, line=2.2)
   title("h.", line=-1.2, adj=0.04, cex.main=1.4)
   
   for(i in 1:N) {
     if(i%in%c(1:4)) {
-      coluse<-"darkred"
+      coluse<-1
     } else {
       coluse<-"grey"
     }
@@ -147,12 +149,12 @@ pdf("figures/trajectories.pdf", width=10, height=7.5, colormodel = "cmyk", useDi
   }
   for(i in 1) {
     citmp3<-cifun(radsp*3, mean(x0sp[1:4+4*(i-1)])-0.9, mean(y0sp[1:4+4*(i-1)])-0.04, yscl = yscl)
-    polygon(citmp3$x, citmp3$y, xpd=NA, col = adjustcolor("darkred", alpha.f = 0.8))
+    polygon(citmp3$x, citmp3$y, xpd=NA, col = adjustcolor(1, alpha.f = 0.6))
   }
   
   #fulls
   ps<-tmsim$time%in%seq(20, 120, by=5)
-  plot(tmsim$time[ps]-20, tmsim$state[ps], xlab="", ylab="", type="l", ylim=ylm, col=collst1); abline(h=0, lty=3)
+  plot(tmsim$time[ps]-20, tmsim$state[ps], xlab="", ylab="", type="l", ylim=ylm, col=1); abline(h=0, lty=3)
   mtext(expression(paste(italic(x))), side = 2, line=2.2)
   mtext("time", side = 1, line=2.6)
   title("c.", line=-1.2, adj=0.04, cex.main=1.4)
@@ -160,26 +162,27 @@ pdf("figures/trajectories.pdf", width=10, height=7.5, colormodel = "cmyk", useDi
   citmp<-cifun(r=2*dy, x0 = y0+dy*2, y0 = 0, yscl = yscl)
   lines(citmp, xpd=NA)
   citmp2<-cifun(r=2*dy*0.9, x0 = y0+dy*2, y0 = 0, yscl = yscl)
+  citmp3<-cifun(r=2*dy*0.9*0.8, x0 = y0+dy*2, y0 = 0, yscl = yscl)
   nps<-round(seq(1, nrow(citmp2), length=13))[-13]
   text(x=citmp2$x[nps], y=citmp2$y[nps], c(3:1, 12:4), xpd=NA)
-  arrows(y0+dy*2, 0, citmp2$x[nps][c(4,10)], citmp2$y[nps][c(4,10)], xpd=NA, length = 0.1, col="darkred", lwd=2, lend=4)
+  arrows(y0+dy*2, 0, citmp3$x[nps][c(4,10)], citmp3$y[nps][c(4,10)], xpd=NA, length = 0.08, col=1, lwd=2, lend=4)
   
-  matplot(spsim$time-20, cbind(rowMeans(spsim[,1:16+2])), xlab="", ylab="", type="l", ylim=ylm, col=collst1[7], lty=1); abline(h=0, lty=3)
+  matplot(spsim$time-20, cbind(rowMeans(spsim[,1:16+2])), xlab="", ylab="", type="l", ylim=ylm, col=1, lty=1); abline(h=0, lty=3)
   mtext(expression(paste(Sigma, italic(x), "/", italic(A))), side = 2, line=2.2)
   mtext("time", side = 1, line=2.6)
   title("f.", line=-1.2, adj=0.04, cex.main=1.4)
-  polygon(c(y0, y0+dy*4, y0+dy*4, y0), c(x0, x0,x0+dx*4, x0+dx*4), col="darkred", xpd=NA)
+  polygon(c(y0, y0+dy*4, y0+dy*4, y0), c(x0, x0,x0+dx*4, x0+dx*4), col=1, xpd=NA)
   
-  matplot(ecsim$time-20, cbind(rowMeans(ecsim[,1:16+2])), xlab="", ylab="", type="l", ylim=ylm, col=collst2[7], lty=1); abline(h=0, lty=3)
+  matplot(ecsim$time-20, cbind(rowMeans(ecsim[,1:16+2])), xlab="", ylab="", type="l", ylim=ylm, col=1, lty=1); abline(h=0, lty=3)
   mtext(expression(paste(Sigma, italic(x), "/", italic(M))), side = 2, line=2.2)
   mtext("time", side = 1, line=2.6)
   
   for(i in 1:N) {
     citmp3<-cifun(radsp, x0sp[i], y0sp[i], yscl = yscl)
-    polygon(citmp3$x, citmp3$y, xpd=NA, col = "darkred")
+    polygon(citmp3$x, citmp3$y, xpd=NA, col = 1)
   }
   citmp3<-cifun(radsp*7.3, mean(x0sp)-dy*0.15, mean(y0sp), yscl = yscl)
-  polygon(citmp3$x, citmp3$y, xpd=NA, col = adjustcolor("darkred", alpha.f = 0.8))
+  polygon(citmp3$x, citmp3$y, xpd=NA, col = adjustcolor(1, alpha.f = 0.6))
   title("i.", line=-1.2, adj=0.04, cex.main=1.4)
 dev.off()
 

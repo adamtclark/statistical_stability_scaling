@@ -229,7 +229,7 @@ var_approx<-function(r, f, d_sd) {
 }
 
 #plot simulation results
-pltqt<-function(tmp, x, ylab="", truev=NULL, plog="y", mlog="", domod=TRUE, do_N=TRUE, plotqtl=c(0,1), modoffset=0, ylim=NULL, qtp=c(-1, 1), jfac=10, cluse="black", linecol="dodgerblue", xlab="", ...) {
+pltqt<-function(tmp, x, ylab="", truev=NULL, plog="y", mlog="", domod=TRUE, do_N=TRUE, plotqtl=c(0,1), modoffset=0, ylim=NULL, qtp=c(-1, 1), jfac=10, cluse="black", linecol="black", xlab="", nonparametric=TRUE, ...) {
   if(var(x, na.rm=T)<1e-10) {
     #remove floating point error for plotting
     x<-round(x, 10)
@@ -243,7 +243,11 @@ pltqt<-function(tmp, x, ylab="", truev=NULL, plog="y", mlog="", domod=TRUE, do_N
   plot(jitter(tmp, factor = jfac), x, xlab=xlab, ylab=ylab, col=adjustcolor(cluse, alpha.f = 0.2), cex=0.3, log=plog, ylim=pylim, pch=16, axes=F, type="n", ...)
   axis(1); axis(2, las=2); box()
   
-  qtl<-t(matrix(nrow=2, unlist(tapply(x, tmp, function(x) quantile(x, pnorm(c(qtp)),na.rm=T)))))
+  if(nonparametric) {
+    qtl<-t(matrix(nrow=2, unlist(tapply(x, tmp, function(x) quantile(x, pnorm(c(qtp)),na.rm=T)))))
+  } else {
+    qtl<-t(matrix(nrow=2, unlist(tapply(x, tmp, function(x) c(mean(x)+sd(x)*c(-1,1))))))
+  }
   tlst<-sort(unique(tmp))
   nobs<-tapply(x, tmp, function(x) sum(!is.na(x)))
   ps<-which(!is.na(rowSums(qtl)) & nobs>3)
@@ -251,9 +255,9 @@ pltqt<-function(tmp, x, ylab="", truev=NULL, plog="y", mlog="", domod=TRUE, do_N
   polygon(c(tlst[ps], rev(tlst[ps])), c(qtl[ps,1], rev(qtl[ps,2])), col=adjustcolor(cluse, alpha.f = 0.5), border = NA)
   if(!is.null(truev)) {
     if(length(truev)==1) {
-      abline(h=truev, lty=2, col=linecol, lwd=2)
+      abline(h=truev, lty=2, col=linecol, lwd=1.5)
     } else {
-      lines(truev, lty=2, col=linecol, lwd=2)
+      lines(truev, lty=2, col=linecol, lwd=1.5)
     }
   }
   
@@ -282,7 +286,7 @@ pltqt<-function(tmp, x, ylab="", truev=NULL, plog="y", mlog="", domod=TRUE, do_N
     if(sum(grep("y", mlog))>0) {
       prd<-exp(prd)
     }
-    lines(tlst, prd, col=2, lty=3, lwd=2)
+    lines(tlst, prd, col=1, lty=3, lwd=1.5)
   }
   
   if(do_N) {
@@ -296,7 +300,7 @@ pltqt<-function(tmp, x, ylab="", truev=NULL, plog="y", mlog="", domod=TRUE, do_N
 }
 
 #add a new interval to an existing plot
-addqt<-function(tmp, x, qtp=c(-1, 1), jfac=10, cluse="red") {
+addqt<-function(tmp, x, qtp=c(-1, 1), jfac=10, cluse="black", pltdens=12, ...) {
   if(var(x, na.rm=T)<1e-10) {
     #remove floating point error for plotting
     x<-round(x, 10)
@@ -309,7 +313,7 @@ addqt<-function(tmp, x, qtp=c(-1, 1), jfac=10, cluse="red") {
   nobs<-tapply(x, tmp, function(x) sum(!is.na(x)))
   ps<-which(!is.na(rowSums(qtl)) & nobs>3)
   
-  polygon(c(tlst[ps], rev(tlst[ps])), c(qtl[ps,1], rev(qtl[ps,2])), col=adjustcolor(cluse, alpha.f = 0.5), border = NA)
+  polygon(c(tlst[ps], rev(tlst[ps])), c(qtl[ps,1], rev(qtl[ps,2])), col=adjustcolor(cluse, alpha.f = 0.5), density = pltdens, ...)
 }
 
 

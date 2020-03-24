@@ -1,10 +1,13 @@
 #plots Figure 3 in the main text
+#rm(list=ls())
 
 #load functions and packages
 source("functions.R")
 require(mvtnorm)
 require(nlme)
 require(deSolve)
+collst_attributes<-c("firebrick3", "darkgoldenrod3", "dodgerblue2", "mediumpurple2", "olivedrab4", "springgreen4")
+#resistance; resilience; invariability; frequency; persistence; robustness
 
 #parameters
 K<-1 #carrying capacity
@@ -12,20 +15,20 @@ r<-1 #rate of recovery
 d<-(0) #mean size of disturbance (mu in text)
 d_sd<-sqrt(0.1) #SD of disturbances (sigma in text)
 f<-1 #average time between disturbances (1/lambda in text)
-sf<-0.01 #sampling frequency
+sf<-0.01 #sampling interval
 tmax<-120 #maximum time for simulation
 
 set.seed(1202) #set random seed
 
 ##################################
-#simulate varying sampling frequency
+#simulate varying sampling interval
 ##################################
 tlst<-c(0.01, seq(0.05, 10, by=0.5), 10) #sampling frequencies to test
 niter<-1000 #number of iterations
 #dataframe for saving results
 estmat<-as.matrix(data.frame(iter=rep(niter, each=length(tlst)), tsmp=rep(tlst, niter),
                    n=NA,
-                   var=NA, f=NA, r=NA, d_sd=NA, r_naive=NA, d_sd_naive=NA))
+                   var=NA, f=NA, r=NA, d_sd=NA, r_naive=NA, r_naive_bounded=NA, d_sd_naive=NA))
 
 #only run if no saved simulation is available
 if(sum(grep("estmat_tm.csv", dir("datout/")))==0) {
@@ -45,6 +48,14 @@ if(sum(grep("estmat_tm.csv", dir("datout/")))==0) {
       tmp<-try(exp(mean(log(abs(diff(log(abs(dtmp[,"state"]))))),na.rm=T))/mean(diff(dtmp[,"time"]),na.rm=T))
       if(!is.character(tmp)) {
         estmat[n,"r_naive"]<-tmp
+      }
+      
+      #alternate calculation, including only cases where a single disturbance has occurred, followed by no disturbance
+      dt<-mean(diff(dtmp[,"time"]))
+      disttm_forward<-which(c(dtmp[,"disturbed"][-1], 1)==0 & dtmp[,"disturbed"]==1)
+      disttm_backward<-which(c(dtmp[,"disturbed"][-1], 0)==1 & dtmp[,"disturbed"]==0)
+      if(sum(disttm_backward)>0) {
+        estmat[n,"r_naive_bounded"]<-mean(log(dtmp[,"state"][disttm_forward+1]/dtmp[,"state"][disttm_forward])/dt)
       }
       
       #get corrected estimates
@@ -83,37 +94,34 @@ if(sum(grep("estmat_tm.csv", dir("datout/")))==0) {
 }
 
 #upper quantile for plot margins
-pdf("figures/temporal_grain.pdf", width=3, height=6, colormodel = "cmyk", useDingbats = FALSE)
+pdf("figures/temporal_scale.pdf", width=3, height=6, colormodel = "cmyk", useDingbats = FALSE)
   par(mfrow=c(3,1), mar=c(2,4,1,1), oma=c(2,1.5,0,0))
   
   #corrected r
   ps<-is.finite(estmat[,"r"])
-  pltqt(estmat[ps,"tsmp"], estmat[ps,"r"], "", r, domod=FALSE, do_N = FALSE, plog = "", ylim = c(0, 3.2))
+  pltqt(estmat[ps,"tsmp"], estmat[ps,"r"], "", r, domod=FALSE, do_N = FALSE, plog = "", ylim = c(0, 3.2), cluse = collst_attributes[2])
   mtext(expression(paste("resilience, ", italic(r))), 2, line=3.2)
   title("a.", line=-0.85, adj=0.02, cex.main=1.2)
-  abline(h=0, lty=3)
   
   #raw r estimate
   ps<-is.finite(estmat[,"r_naive"])
-  addqt(estmat[ps,"tsmp"], estmat[ps,"r_naive"])
+  addqt(estmat[ps,"tsmp"], estmat[ps,"r_naive"], cluse = 1, pltdens = 20)
   
   #corrected d_sd
   ps<-is.finite(estmat[,"r"])
   #back-calculate from corrected r value
-  pltqt(estmat[ps,"tsmp"], sqrt(estmat[ps,"r"]*(2*f*estmat[ps,"var"])), "", d_sd, domod=FALSE, do_N = FALSE, plog = "", mlog="", ylim = c(0, 0.6))
+  pltqt(estmat[ps,"tsmp"], sqrt(estmat[ps,"r"]*(2*f*estmat[ps,"var"])), "", d_sd, domod=FALSE, do_N = FALSE, plog = "", mlog="", ylim = c(0, 0.6), cluse=collst_attributes[1])
   mtext(expression(paste("resistance"^{-1}, ", ", italic(sigma))), 2, line=3.2)
   title("b.", line=-0.85, adj=0.02, cex.main=1.2)
-  abline(h=0, lty=3)
   
   #raw d_sd
   ps<-is.finite(estmat[,"d_sd_naive"])
-  addqt(estmat[ps,"tsmp"], estmat[ps,"d_sd_naive"])
+  addqt(estmat[ps,"tsmp"], estmat[ps,"d_sd_naive"], cluse = 1, pltdens = 20)
   
   #variance
-  pltqt(estmat[,"tsmp"], estmat[,"var"], "", var_approx(r,f,d_sd), do_N = FALSE, domod=FALSE, plog = "", mlog="", ylim = c(0, 0.1))
+  pltqt(estmat[,"tsmp"], estmat[,"var"], "", var_approx(r,f,d_sd), do_N = FALSE, domod=FALSE, plog = "", mlog="", ylim = c(0, 0.09), cluse = collst_attributes[3])
   mtext(expression(paste("invariability"^-1, ", ", "var(", italic(x), ")")), 2, line=3.2)
   title("c.", line=-0.85, adj=0.02, cex.main=1.2)
-  abline(h=0, lty=3)
   
-  mtext("sampling frequency", 1, line = 0.5, outer=T, adj = 0.65)
+  mtext("sampling interval", 1, line = 0.5, outer=T, adj = 0.65)
 dev.off()
