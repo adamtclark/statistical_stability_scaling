@@ -51,7 +51,7 @@ for(i in c(3,1,2)) {
   
   #plot actual relationship
   matplot(1:N, mns+sds*matrix(nrow=N, rep(c(-1, 0, 1), each=N)), lty=c(2,1,2), col=1, xlab="", ylab=expression(paste("var(", Sigma, italic(N), ")")), type="n")
-  polygon(c(1:N, N:1), c(mns+sds, rev(mns-sds)), border=NA, col=collst_attributes[3])
+  polygon(c(1:N, N:1), c(mns+sds, rev(mns-sds)), border=NA, col=adjustcolor(collst_attributes[3], alpha.f = 0.5))
   
   #text(1, max(mns+sds)-diff(range(mns+sds))*0.1, paste("rho =", round(crrlst[c(pmin, pmid, pmax)[i]],3)), pos = 4)
   if(i==3) {
