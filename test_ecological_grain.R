@@ -180,7 +180,7 @@ pdf("figures/ecological_grain.pdf", width=6, height=4, colormodel = "cmyk", useD
   tmp<-t(apply(rmat2, 2, function(x) quantile(x, pnorm(-1:1), na.rm=T)))
   pltqt(rep(tmlst, each=nrow(rmat2)), as.matrix(unlist(c(rmat2))), "", domod=FALSE, do_N = FALSE, plog = "", xlab = "", ylim=c(0,tmp[1,3]), jfac = 1, cluse = collst_attributes[2])
   lines(tmlst, tmp[,2], lwd=1.5, col=1, lty=2)
-  abline(h=r, lty=3, lwd=1.5, col="darkgrey")
+  abline(h=r, lty=3, lwd=1.5, col="black")
   mtext(expression(paste("resilience, ", italic(r))), 2, line=3.2)
   mtext(expression(paste("sampling interval")), 1, line=2.3)
   title("a.", line=padj[1], adj=padj[2]+0.06, cex.main=padj[3])
@@ -218,12 +218,12 @@ pdf("figures/ecological_grain.pdf", width=6, height=4, colormodel = "cmyk", useD
   mtext(expression(paste("resilience, ", italic(r))), 2, line=3.2)
   title("b.", line=padj[1], adj=padj[2], cex.main=padj[3])
   mtext(expression(paste("ecological scale")), 1, line=2.3)
-  abline(h=r, lwd=1.5, lty=3, col="darkgrey")
+  abline(h=r, lwd=1.5, lty=3, col="black")
   
   #d_sd
   #disturbance - follows same scaling relationship as for space
   pltqt(estmat[,"N"], estmat[,"d_sd_true"], "", sd_N, domod=FALSE, do_N = FALSE, plog = "", xlab = "", ylim=c(0, 1.8), jfac = 1, cluse = collst_attributes[1])
-  lines(sd_N$Asq, sd_N$dsd, lwd=1.5, lty=3, col="darkgrey")
+  lines(sd_N$Asq, sd_N$dsd, lwd=1.5, lty=3, col="black")
   
   title("c.", line=padj[1], adj=padj[2], cex.main=padj[3])
   mtext(expression(paste("resistance"^{-1}, ", ", italic(sigma))), 2, line=3.2)
@@ -233,7 +233,7 @@ pdf("figures/ecological_grain.pdf", width=6, height=4, colormodel = "cmyk", useD
   #scaling relationship for variance
   var_N<-data.frame(Asq, vr=var_approx(r,f,d_sd)*Asq*(1+(Asq-1)*d_cov/(d_sd)^2)) #null expectation (no interactions)
   pltqt(estmat[,"N"], estmat[,"var"], "", do_N = FALSE, domod=FALSE, plog = "y", mlog="", xlab = "", ylim=c(0.05,3.2), jfac = 1, cluse = collst_attributes[3])
-  lines(var_N$Asq, var_N$vr, lwd=1.5, lty=3, col="darkgrey")
+  lines(var_N$Asq, var_N$vr, lwd=1.5, lty=3, col="black")
   title("d.", line=padj[1], adj=padj[2], cex.main=padj[3])
   mtext(expression(paste("variability, ", "var(", italic(x), ")")), 2, line=3.2)
   mtext(expression(paste("ecological scale")), 1, line=2.3)
