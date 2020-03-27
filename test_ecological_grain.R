@@ -168,8 +168,8 @@ if(sum(grep("estmat_ec_r.csv", dir("datout/")))==0) {
 padj<-c(-1, 0.02, 1.4)
 qtlu<-0.975
 
-pdf("figures/ecological_grain.pdf", width=6, height=4, colormodel = "cmyk", useDingbats = FALSE)
-  par(mfrow=c(2,2), mar=c(3,4,1,1), oma=c(0.5,1.5,0,0))
+pdf("figures/ecological_grain_time_effect.pdf", width=3, height=3, colormodel = "cmyk", useDingbats = FALSE)
+  par(mfrow=c(1,1), mar=c(3,4,1,1), oma=c(0.5,1.5,0,0))
   Asq<-seq(1, max(Nlst), by=0.1)
   Asq_small<-seq(1, max(Nlst))
   
@@ -183,8 +183,12 @@ pdf("figures/ecological_grain.pdf", width=6, height=4, colormodel = "cmyk", useD
   abline(h=r, lty=3, lwd=1.5, col="black")
   mtext(expression(paste("resilience, ", italic(r))), 2, line=3.2)
   mtext(expression(paste("sampling interval")), 1, line=2.3)
-  title("a.", line=padj[1], adj=padj[2]+0.06, cex.main=padj[3])
-  
+  #title("a.", line=padj[1], adj=padj[2]+0.06, cex.main=padj[3])
+dev.off()
+
+pdf("figures/ecological_grain.pdf", width=3, height=6, colormodel = "cmyk", useDingbats = FALSE)
+  par(mfcol=c(3,1), mar=c(2,4,1,1), oma=c(2,1.5,0,0))
+
   #r vs. number of species
   ps<-is.finite(estmat[,"r_naive"])
   #scaling reqlationship for variance
@@ -216,8 +220,7 @@ pdf("figures/ecological_grain.pdf", width=6, height=4, colormodel = "cmyk", useD
   lines(Asq_small, rest, col=1, lwd=1.5, lty=2)
   
   mtext(expression(paste("resilience, ", italic(r))), 2, line=3.2)
-  title("b.", line=padj[1], adj=padj[2], cex.main=padj[3])
-  mtext(expression(paste("ecological scale")), 1, line=2.3)
+  title("a.", line=padj[1], adj=padj[2], cex.main=padj[3])
   abline(h=r, lwd=1.5, lty=3, col="black")
   
   #d_sd
@@ -225,18 +228,17 @@ pdf("figures/ecological_grain.pdf", width=6, height=4, colormodel = "cmyk", useD
   pltqt(estmat[,"N"], estmat[,"d_sd_true"], "", sd_N, domod=FALSE, do_N = FALSE, plog = "", xlab = "", ylim=c(0, 1.8), jfac = 1, cluse = collst_attributes[1])
   lines(sd_N$Asq, sd_N$dsd, lwd=1.5, lty=3, col="black")
   
-  title("c.", line=padj[1], adj=padj[2], cex.main=padj[3])
+  title("b.", line=padj[1], adj=padj[2], cex.main=padj[3])
   mtext(expression(paste("resistance"^{-1}, ", ", italic(sigma))), 2, line=3.2)
-  mtext(expression(paste("ecological scale")), 1, line=2.3)
   
   #var
   #scaling relationship for variance
   var_N<-data.frame(Asq, vr=var_approx(r,f,d_sd)*Asq*(1+(Asq-1)*d_cov/(d_sd)^2)) #null expectation (no interactions)
   pltqt(estmat[,"N"], estmat[,"var"], "", do_N = FALSE, domod=FALSE, plog = "y", mlog="", xlab = "", ylim=c(0.05,3.2), jfac = 1, cluse = collst_attributes[3])
   lines(var_N$Asq, var_N$vr, lwd=1.5, lty=3, col="black")
-  title("d.", line=padj[1], adj=padj[2], cex.main=padj[3])
+  title("c.", line=padj[1], adj=padj[2], cex.main=padj[3])
   mtext(expression(paste("variability, ", "var(", italic(x), ")")), 2, line=3.2)
-  mtext(expression(paste("ecological scale")), 1, line=2.3)
+  mtext(expression(paste("ecological scale")), 1, line = 2.5, outer=F, adj = 0.5)
   
   ps<-which(estmat[,"N"]==max(Nlst))
   lines(Asq, Asq*mean(estmat[ps,"var_sp"],na.rm=T)+(Asq^2-Asq)*mean(estmat[ps,"cov_sp"],na.rm=T), col=1, lwd=1.5, lty=2) #heuristic estimate
