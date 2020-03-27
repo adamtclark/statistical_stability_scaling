@@ -82,12 +82,17 @@ pdf("figures/trajectories.pdf", width=10, height=7.5, colormodel = "cmyk", useDi
   
   for(i in 1:4) {
     for(j in 1:4) {
-      if(i==1 & j==4) {
-        coluse<-1
-      } else {
-        coluse<-"grey"
-      }
+      coluse<-"grey"
       polygon(c(y0, y0+dy, y0+dy, y0)+dy*(i-1), c(x0, x0,x0+dx, x0+dx)+dx*(j-1), col=coluse, xpd=NA)
+    }
+  }
+  
+  for(i in 1:4) {
+    for(j in 1:4) {
+      if(i==1 & j==4) {
+        coluse<-adjustcolor(1, alpha.f = 0.85)
+        polygon(c(y0, y0+dy, y0+dy, y0)+dy*(i-1), c(x0, x0,x0+dx, x0+dx)+dx*(j-1), col=coluse, xpd=NA)
+      }
     }
   }
   
@@ -123,14 +128,20 @@ pdf("figures/trajectories.pdf", width=10, height=7.5, colormodel = "cmyk", useDi
   matplot(spsim$time-20, cbind(rowMeans(spsim[,1:4+2]), rowMeans(spsim[,5:8+2]), rowMeans(spsim[,9:12+2]), rowMeans(spsim[,13:16+2])),
           xlab="", ylab="", type="l", ylim=ylm, col=c(collst1[c(16,8,4)],1), lty=1); abline(h=0, lty=3)
   mtext(expression(paste(Sigma, italic(x), "/", italic(A))), side = 2, line=2.2)
+  
+  for(i in 1:4) {
+    for(j in 1:4) {
+      coluse<-"grey"
+      polygon(c(y0, y0+dy, y0+dy, y0)+dy*(i-1), c(x0, x0,x0+dx, x0+dx)+dx*(j-1), col=coluse, xpd=NA)
+    }
+  }
+  
   for(i in 1:2) {
     for(j in 1:2) {
       if(i==1 & j==2) {
-        coluse<-1
-      } else {
-        coluse<-"grey"
+        coluse<-adjustcolor(1, alpha.f = 0.85)
+        polygon(c(y0, y0+dy*2, y0+dy*2, y0)+dy*2*(i-1), c(x0, x0,x0+dx*2, x0+dx*2)+dx*2*(j-1), col=coluse, xpd=NA)
       }
-      polygon(c(y0, y0+dy*2, y0+dy*2, y0)+dy*2*(i-1), c(x0, x0,x0+dx*2, x0+dx*2)+dx*2*(j-1), col=coluse, xpd=NA)
     }
   }
   title("e.", line=-1.2, adj=0.04, cex.main=1.4)
@@ -174,7 +185,14 @@ pdf("figures/trajectories.pdf", width=10, height=7.5, colormodel = "cmyk", useDi
   mtext(expression(paste(Sigma, italic(x), "/", italic(A))), side = 2, line=2.2)
   mtext("time", side = 1, line=2.6)
   title("f.", line=-1.2, adj=0.04, cex.main=1.4)
-  polygon(c(y0, y0+dy*4, y0+dy*4, y0), c(x0, x0,x0+dx*4, x0+dx*4), col=1, xpd=NA)
+  
+  for(i in 1:4) {
+    for(j in 1:4) {
+      coluse<-"grey"
+      polygon(c(y0, y0+dy, y0+dy, y0)+dy*(i-1), c(x0, x0,x0+dx, x0+dx)+dx*(j-1), col=coluse, xpd=NA)
+    }
+  }
+  polygon(c(y0, y0+dy*4, y0+dy*4, y0), c(x0, x0,x0+dx*4, x0+dx*4), col=adjustcolor(1, alpha.f = 0.85), xpd=NA)
   
   matplot(ecsim$time-20, cbind(rowMeans(ecsim[,1:16+2])), xlab="", ylab="", type="l", ylim=ylm, col=1, lty=1); abline(h=0, lty=3)
   mtext(expression(paste(Sigma, italic(x), "/", italic(M))), side = 2, line=2.2)
