@@ -52,10 +52,13 @@ if(sum(grep("estmat_tm.csv", dir("datout/")))==0) {
       
       #alternate calculation, including only cases where a single disturbance has occurred, followed by no disturbance
       dt<-mean(diff(dtmp[,"time"]))
-      disttm_forward<-which(c(dtmp[,"disturbed"][-1], 1)==0 & dtmp[,"disturbed"]==1)
-      disttm_backward<-which(c(dtmp[,"disturbed"][-1], 0)==1 & dtmp[,"disturbed"]==0)
-      if(sum(disttm_backward)>0) {
-        estmat[n,"r_naive_bounded"]<-mean(log(dtmp[,"state"][disttm_forward+1]/dtmp[,"state"][disttm_forward])/dt)
+      disttm_forward<-which(c(dtmp[,"disturbed"][-1], Inf) < dtmp[,"disturbed"])
+      if(sum(disttm_forward)>0) {
+        tmp1<-dtmp[,"state"][disttm_forward+1]
+        tmp2<-dtmp[,"state"][disttm_forward]
+        ps<-which(sign(tmp1)==sign(tmp2))
+        
+        estmat[n,"r_naive_bounded"]<-mean(log(tmp1[ps]/tmp2[ps])/dt)
       }
       
       #get corrected estimates
@@ -77,7 +80,7 @@ if(sum(grep("estmat_tm.csv", dir("datout/")))==0) {
       
       #estiamte d_sd by comparing time steps with and without disturbances
       #this is the "raw" estimate from the paper
-      disttm_backward<-which(c(dtmp[,"disturbed"][-1], 0)==1 & dtmp[,"disturbed"]==0)
+      disttm_backward<-which(c(dtmp[,"disturbed"][-1], 0)==1 & (dtmp[,"disturbed"])==0)
       if(sum(disttm_backward)>0) {
         estmat[n,"d_sd_naive"]<-sd(dtmp[disttm_backward+1,"state"]-dtmp[disttm_backward,"state"])
       }
@@ -104,8 +107,8 @@ pdf("figures/temporal_scale.pdf", width=3, height=6, colormodel = "cmyk", useDin
   title("a.", line=-0.85, adj=0.02, cex.main=1.2)
   
   #raw r estimate
-  ps<-is.finite(estmat[,"r_naive"])
-  addqt(estmat[ps,"tsmp"], estmat[ps,"r_naive"], cluse = 1, pltdens = 20)
+  ps<-is.finite(estmat[,"r_naive_bounded"])
+  addqt(estmat[ps,"tsmp"], -estmat[ps,"r_naive_bounded"], cluse = 1, pltdens = 20)
   
   #corrected d_sd
   ps<-is.finite(estmat[,"r"])
