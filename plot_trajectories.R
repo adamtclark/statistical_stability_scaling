@@ -73,6 +73,7 @@ pdf("figures/trajectories.pdf", width=10, height=7.5, colormodel = "cmyk", useDi
   nps<-round(seq(1, nrow(citmp2), length=13))[-13]
   text(x=citmp2$x[nps], y=citmp2$y[nps], c(3:1, 12:4), xpd=NA)
   arrows(y0+dy*2, 0, citmp3$x[nps], citmp3$y[nps], xpd=NA, length = 0.08, col=1, lwd=2, lend=4)
+  points(y0+dy*2, 0, pch=16, xpd=NA)
   
   matplot(ecsim$time-20, ecsim[,-c(1:2)], xlab="", ylab="", type="l", ylim=ylm, col=c(collst1[1:(ncol(ecsim)-3)],1), lty=1); abline(h=0, lty=3)
   mtext("Spatial Scale", side = 3, line=1, cex=1.2)
@@ -115,8 +116,9 @@ pdf("figures/trajectories.pdf", width=10, height=7.5, colormodel = "cmyk", useDi
   citmp3<-cifun(r=2*dy*0.9*0.8, x0 = y0+dy*2, y0 = 0, yscl = yscl)
   nps<-round(seq(1, nrow(citmp2), length=13))[-13]
   text(x=citmp2$x[nps], y=citmp2$y[nps], c(3:1, 12:4), xpd=NA)
-  arrows(y0+dy*2, 0, citmp3$x[nps][c(1,4,7,10)], citmp3$y[nps][c(1,4,7,10)], xpd=NA, length = 0.08, col=1, lwd=2, lend=4)
+  arrows(y0+dy*2, 0, citmp3$x[nps], citmp3$y[nps], xpd=NA, length = 0.08, col=c("grey", "black")[rep(c(2,1,1),3)], lwd=2, lend=4)
   title("b.", line=-1.2, adj=0.04, cex.main=1.4)
+  points(y0+dy*2, 0, pch=16, xpd=NA)
   
   matplot(spsim$time-20, cbind(rowMeans(spsim[,1:4+2]), rowMeans(spsim[,5:8+2]), rowMeans(spsim[,9:12+2]), rowMeans(spsim[,13:16+2])),
           xlab="", ylab="", type="l", ylim=ylm, col=c(collst1[c(16,8,4)],1), lty=1); abline(h=0, lty=3)
@@ -165,7 +167,8 @@ pdf("figures/trajectories.pdf", width=10, height=7.5, colormodel = "cmyk", useDi
   citmp3<-cifun(r=2*dy*0.9*0.8, x0 = y0+dy*2, y0 = 0, yscl = yscl)
   nps<-round(seq(1, nrow(citmp2), length=13))[-13]
   text(x=citmp2$x[nps], y=citmp2$y[nps], c(3:1, 12:4), xpd=NA)
-  arrows(y0+dy*2, 0, citmp3$x[nps][c(4,10)], citmp3$y[nps][c(4,10)], xpd=NA, length = 0.08, col=1, lwd=2, lend=4)
+  arrows(y0+dy*2, 0, citmp3$x[nps], citmp3$y[nps], xpd=NA, length = 0.08, col=c("grey", "black")[rep(c(1,1,1,2,1,1),3)], lwd=2, lend=4)
+  points(y0+dy*2, 0, pch=16, xpd=NA)
   
   matplot(spsim$time-20, cbind(rowMeans(spsim[,1:16+2])), xlab="", ylab="", type="l", ylim=ylm, col=1, lty=1); abline(h=0, lty=3)
   mtext(expression(paste(Sigma, italic(x), "/", italic(A))), side = 2, line=2.2)
