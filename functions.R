@@ -320,6 +320,14 @@ addqt<-function(tmp, x, qtp=c(-1, 1), jfac=10, cluse="black", pltdens=12, ...) {
 #function for solving for paramter values from observed time series
 #equivalent to Eq. S39 in the appendix.
 xt2fun<-function(x0, r, d, d_sd, dt, ndist) {
+  #x0 is value of x^2 at time t
+  #r is per-capita growth rate
+  #d is mean size of disturbance
+  #d_sd is standard deviation of disturbance
+  #dt is time step (i.e. time between x0 and x1)
+  #ndist is number of disturbances
+  #function RETURNS value of x^2 at time t+dt
+  
   if(length(dt)==1) {
     dt<-rep(dt, length(x0))
   }
