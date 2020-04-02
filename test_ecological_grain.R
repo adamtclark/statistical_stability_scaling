@@ -182,7 +182,7 @@ pdf("figures/ecological_grain_time_effect.pdf", width=3, height=3, colormodel = 
   lines(tmlst, tmp[,2], lwd=1.5, col=1, lty=2)
   abline(h=r, lty=3, lwd=1.5, col="black")
   mtext(expression(paste("resilience, ", italic(r))), 2, line=3.2)
-  mtext(expression(paste("sampling interval")), 1, line=2.3)
+  mtext(expression(paste("temporal scale")), 1, line=2.3)
   #title("a.", line=padj[1], adj=padj[2]+0.06, cex.main=padj[3])
 dev.off()
 

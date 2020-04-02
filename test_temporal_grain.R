@@ -126,5 +126,5 @@ pdf("figures/temporal_scale.pdf", width=3, height=6, colormodel = "cmyk", useDin
   mtext(expression(paste("invariability"^-1, ", ", "var(", italic(x), ")")), 2, line=3.2)
   title("c.", line=-0.85, adj=0.02, cex.main=1.2)
   
-  mtext("sampling interval", 1, line = 0.5, outer=T, adj = 0.65)
+  mtext("temporal scale", 1, line = 0.5, outer=T, adj = 0.65)
 dev.off()
