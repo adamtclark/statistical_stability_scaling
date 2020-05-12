@@ -237,7 +237,7 @@ pdf("figures/ecological_grain.pdf", width=3, height=6, colormodel = "cmyk", useD
   pltqt(estmat[,"N"], estmat[,"var"], "", do_N = FALSE, domod=FALSE, plog = "y", mlog="", xlab = "", ylim=c(0.05,3.2), jfac = 1, cluse = collst_attributes[3])
   lines(var_N$Asq, var_N$vr, lwd=1.5, lty=3, col="black")
   title("c.", line=padj[1], adj=padj[2], cex.main=padj[3])
-  mtext(expression(paste("variability, ", "var(", italic(x), ")")), 2, line=3.2)
+  mtext(expression(paste("invariance"^-1, ", ", "var(", italic(x), ")")), 2, line=3.2)
   mtext(expression(paste("ecological scale")), 1, line = 2.5, outer=F, adj = 0.5)
   
   ps<-which(estmat[,"N"]==max(Nlst))

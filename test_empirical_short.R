@@ -60,11 +60,11 @@ pdf("figures/empirical_var_example.pdf", width=3, height=6, colormodel = "cmyk",
     
     #text(1, max(mns+sds)-diff(range(mns+sds))*0.1, paste("rho =", round(crrlst[c(pmin, pmid, pmax)[i]],3)), pos = 4)
     if(i==3) {
-      text(1, max((mns+sds))-diff((range(mns+sds)))*0.1, expression(paste(bar(italic(rho[x])), " = -0.037")), pos = 4)
+      text(1, max((mns+sds))-diff((range(mns+sds)))*0.1, expression(paste("<", italic(rho[x]), "> = -0.037")), pos = 4)
     } else if(i==1) {
-      text(1, max((mns+sds))-diff((range(mns+sds)))*0.1, expression(paste(bar(italic(rho[x])), " = 0.000")), pos = 4)
+      text(1, max((mns+sds))-diff((range(mns+sds)))*0.1, expression(paste("<", italic(rho[x]), "> = 0.000")), pos = 4)
     } else if(i==2) {
-      text(1, max((mns+sds))-diff((range(mns+sds)))*0.1, expression(paste(bar(italic(rho[x])), " = 0.095")), pos = 4)
+      text(1, max((mns+sds))-diff((range(mns+sds)))*0.1, expression(paste("<", italic(rho[x]), "> = 0.095")), pos = 4)
     }
     
     #analytial scaling relationship

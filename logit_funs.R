@@ -1,12 +1,6 @@
-logit<-function(x) {
-  suppressWarnings(res<-(-log(1/x-1)))
-  res[!is.finite(res)]<-NA
-  res
-}
+logit<-function(x, ...) qlogis(x, ...)
 
-ilogit<-function(x) {
-  1/(1+exp(-x))
-}
+ilogit<-function(x, ...) plogis(x, ...)
 
 cloglog<-function(x) {
   log(-log(1-x))

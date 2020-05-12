@@ -123,7 +123,7 @@ pdf("figures/temporal_scale.pdf", width=3, height=6, colormodel = "cmyk", useDin
   
   #variance
   pltqt(estmat[,"tsmp"], estmat[,"var"], "", var_approx(r,f,d_sd), do_N = FALSE, domod=FALSE, plog = "", mlog="", ylim = c(0, 0.09), cluse = collst_attributes[3])
-  mtext(expression(paste("invariability"^-1, ", ", "var(", italic(x), ")")), 2, line=3.2)
+  mtext(expression(paste("invariance"^-1, ", ", "var(", italic(x), ")")), 2, line=3.2)
   title("c.", line=-0.85, adj=0.02, cex.main=1.2)
   
   mtext("temporal scale", 1, line = 0.5, outer=T, adj = 0.65)

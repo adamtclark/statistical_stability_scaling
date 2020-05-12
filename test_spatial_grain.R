@@ -201,7 +201,7 @@ pdf("figures/spatial_grain.pdf", width=3, height=6, colormodel = "cmyk", useDing
     var_N<-data.frame(Asq, var_approx(r,f,d_sd)*Asq*(1+(Asq-1)*d_cov0/(d_sd)^2))
     pltqt(estmat[,"N"], estmat[,"var"], "", truev = var_N, do_N = FALSE, domod=FALSE, plog = "", mlog="", xlab = "spatial grain", ylim=c(0, 28), jfac=1, cluse = collst_attributes[3])
     title("c.", line=-1.2, adj=0.04, cex.main=1.4)
-    mtext(expression(paste("invariability"^-1, ", ", "var(", italic(x), ")")), 2, line=3.2)
+    mtext(expression(paste("invariance"^-1, ", ", "var(", italic(x), ")")), 2, line=3.2)
     
     mtext("spatial scale", 1, line = 2.5, outer=F, adj = 0.5)
 dev.off()
@@ -225,19 +225,19 @@ pdf("figures/spatial_grain_dispersal_patch_level.pdf", width=6, height=4, colorm
   #variance
   var_N<-var_approx(r,f,d_sd)*A #recall, d_cov=0
   pltqt(estmat_disp[,"I"], estmat_disp[,"var"], "", truev = var_N, do_N = FALSE, domod=FALSE, plog = "", mlog="", xlab = "dispersal rate", ylim = c(0.07, 0.13), jfac = 1, cluse = collst_attributes[3])
-  mtext(expression(paste("meta. invariability"^-1)), 2, line=3.1)
+  mtext(expression(paste("meta. invariance"^-1)), 2, line=3.1)
   title("c.", line=-1, adj=0.04, cex.main=1.2)
   
   
   pltqt(estmat_disp[,"I"], estmat_disp[,"var_sp"]*2, "", do_N = FALSE, domod=FALSE, plog = "", mlog="xy", xlab = "dispersal rate", modoffset = 1e-1, jfac = 1, ylim = c(-0.02, 0.14), cluse=collst_attributes[3])
-  mtext(expression(paste("patch-level invariability"^-1)), 2, line=3.1)
+  mtext(expression(paste("patch-level invariance"^-1)), 2, line=3.1)
   title("d.", line=-1, adj=0.02, cex.main=1.2)
   
   addqt(estmat_disp[,"I"], estmat_disp[,"cor_sp"]*(2^2-2), jfac = 1, cluse="darkblue", pltdens = NA, border=NA)
   abline(h=var_approx(r,f,d_sd), lwd=1, col="black", lty=3)
   
-  text(1.5, 0.10, expression(paste(italic(A), bar(paste("var(", italic(x[i]), ")")))), col=collst_attributes[3], cex=1.2)
-  text(1.3, -0.03, expression(paste("(", italic(A)^2, "-", italic(A), ")", bar(paste("cov(", italic(x[i]), ",", italic(x[j]), ")")))), col="darkblue", cex=1.2, pos = 3)
+  text(1.5, 0.10, expression(paste(italic(A), paste("<var(", italic(x[i]), ")>"))), col=collst_attributes[3], cex=1.2)
+  text(1.3, -0.03, expression(paste("(", italic(A)^2, "-", italic(A), ")", paste("<cov(", italic(x[i]), ",", italic(x[j]), ")>"))), col="darkblue", cex=1.2, pos = 3)
   
   mtext("dispersal rate", 1, line = 0.5, outer=TRUE)
 dev.off()
