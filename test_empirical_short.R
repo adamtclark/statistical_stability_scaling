@@ -55,7 +55,8 @@ pdf("figures/empirical_var_example.pdf", width=3, height=6, colormodel = "cmyk",
     sds<-apply((varest), 2, sd)
     
     #plot actual relationship
-    matplot(1:N, (mns+sds*matrix(nrow=N, rep(c(-1, 0, 1), each=N))), lty=c(2,1,2), col=1, xlab="", ylab=expression(paste("var(", Sigma, italic(N), ")")), type="n")
+    matplot(1:N, (mns+sds*matrix(nrow=N, rep(c(-1, 0, 1), each=N))), lty=c(2,1,2), col=1, xlab="",
+            ylab=expression(paste("invariance"^-1, ", var(", Sigma, italic(N), ")")), type="n")
     polygon(c(1:N, N:1), pmax((c(mns+sds, rev(mns-sds))), 0), border=NA, col=adjustcolor(collst_attributes[3], alpha.f = 0.5))
     
     #text(1, max(mns+sds)-diff(range(mns+sds))*0.1, paste("rho =", round(crrlst[c(pmin, pmid, pmax)[i]],3)), pos = 4)
