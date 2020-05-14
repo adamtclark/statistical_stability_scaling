@@ -127,7 +127,7 @@ pdf("figures/trajectories.pdf", width=10, height=7.5, colormodel = "cmyk", useDi
   
   matplot(spsim$time-20, cbind(rowMeans(spsim[,1:4+2]), rowMeans(spsim[,5:8+2]), rowMeans(spsim[,9:12+2]), rowMeans(spsim[,13:16+2])),
           xlab="", ylab="", type="l", ylim=ylm, col=c(collst1[c(16,8,4)],1), lty=1); abline(h=0, lty=3)
-  mtext(expression(paste(Sigma, italic(x), "/", italic(A))), side = 2, line=2.2)
+  mtext(expression(paste(Sigma, italic(x), "/", italic(a))), side = 2, line=2.2)
   
   for(i in 1:4) {
     for(j in 1:4) {
@@ -148,7 +148,7 @@ pdf("figures/trajectories.pdf", width=10, height=7.5, colormodel = "cmyk", useDi
   
   matplot(ecsim$time-20, cbind(rowMeans(ecsim[,1:4+2]), rowMeans(ecsim[,5:8+2]), rowMeans(ecsim[,9:12+2]), rowMeans(ecsim[,13:16+2])),
           xlab="", ylab="", type="l", ylim=ylm, col=c(collst2[c(16,8,4)], 1), lty=1); abline(h=0, lty=3)
-  mtext(expression(paste(Sigma, italic(x), "/", italic(M))), side = 2, line=2.2)
+  mtext(expression(paste(Sigma, italic(x), "/", italic(m))), side = 2, line=2.2)
   title("h.", line=-1.2, adj=0.04, cex.main=1.4)
   
   for(i in 1:N) {
@@ -182,7 +182,7 @@ pdf("figures/trajectories.pdf", width=10, height=7.5, colormodel = "cmyk", useDi
   points(y0+dy*2, 0, pch=16, xpd=NA)
   
   matplot(spsim$time-20, cbind(rowMeans(spsim[,1:16+2])), xlab="", ylab="", type="l", ylim=ylm, col=1, lty=1); abline(h=0, lty=3)
-  mtext(expression(paste(Sigma, italic(x), "/", italic(A))), side = 2, line=2.2)
+  mtext(expression(paste(Sigma, italic(x), "/", italic(a))), side = 2, line=2.2)
   mtext("time", side = 1, line=2.6)
   title("f.", line=-1.2, adj=0.04, cex.main=1.4)
   
@@ -195,7 +195,7 @@ pdf("figures/trajectories.pdf", width=10, height=7.5, colormodel = "cmyk", useDi
   polygon(c(y0, y0+dy*4, y0+dy*4, y0), c(x0, x0,x0+dx*4, x0+dx*4), col=adjustcolor(1, alpha.f = 0.85), xpd=NA)
   
   matplot(ecsim$time-20, cbind(rowMeans(ecsim[,1:16+2])), xlab="", ylab="", type="l", ylim=ylm, col=1, lty=1); abline(h=0, lty=3)
-  mtext(expression(paste(Sigma, italic(x), "/", italic(M))), side = 2, line=2.2)
+  mtext(expression(paste(Sigma, italic(x), "/", italic(m))), side = 2, line=2.2)
   mtext("time", side = 1, line=2.6)
   
   for(i in 1:N) {
