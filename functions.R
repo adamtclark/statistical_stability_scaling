@@ -90,8 +90,14 @@ df<-function(time, state, pars) {
 #differential equation for system with dispersal.
 #note that K is set to 1 for this example
 df_col<-function(time, state, pars) {
+  list(diag(pars$A)*state-pars$Ifrac*state+mean(pars$Ifrac*state))
+}
+
+#differential equation for system with dispersal.
+#note that K is set to 1 for this example
+df_col_loss<-function(time, state, pars) {
   Ksim<-1 #carrying capacity
-  list(diag(pars$A)*state-pmax(pars$Ifrac*(state+Ksim),0)+pars$Ifrac*mean(pmax(state+Ksim, 0)))
+  list(diag(pars$A)*state-pmax((pars$Ifrac+pars$Iloss)*(state+Ksim),0)+mean(pars$Ifrac*pmax(state+Ksim, 0)))
 }
 
 #simulate an ODE given paramters, starting value, and times
@@ -102,7 +108,7 @@ xtN <- function(t0, t1, B0, odepars, dffun, nsteps=2) {
 
 
 #simulate dynamics for N species or patches
-symdynN<-function(r, amu, asd, f, d, d_sd, d_cov, N, sf, tmax, stochd=TRUE, stocht=TRUE, as.matrix=FALSE, amax=0, amin=-Inf, Ifrac=NULL, dffun=df, fullout=FALSE, xstart=NULL) {
+symdynN<-function(r, amu, asd, f, d, d_sd, d_cov, N, sf, tmax, stochd=TRUE, stocht=TRUE, as.matrix=FALSE, amax=0, amin=-Inf, Ifrac=NULL, Iloss = NULL, dffun=df, fullout=FALSE, xstart=NULL) {
   # r is intrinsic growth rate (i.e. resilience)
   # amu is the mean interaction strength
   # asd is the standard deviation used to generate interaction strengths
@@ -117,9 +123,10 @@ symdynN<-function(r, amu, asd, f, d, d_sd, d_cov, N, sf, tmax, stochd=TRUE, stoc
   # stocht is a logical variable, indicating whether waiting time between disturbance events should be stochastic - otherwise, waiting time is always f
   # as.matrix indicates whether results should be returned as matrix (potentially faster for some applications)
   # oscillate_dist is a logical variable indicating whether the sign of the disturbance should oscillate between positive and negative - ignored if stochd==TRUE
-  # amax is the maximum value for interaction coefficiets
-  # amin is the minimum value for interaction coefficiets
-  # Ifrac is the dispersal rate
+  # amax is the maximum value for interaction coefficients
+  # amin is the minimum value for interaction coefficients
+  # Ifrac is the dispersal rate within the system
+  # Iloss is the dispersal rate outside of the system
   # dffun is the function handed to the ODE solver
   # fullout is a logical, determining whether the full output or just a summary is returned
   # xstart is an optional vector of starting abundances
@@ -174,7 +181,7 @@ symdynN<-function(r, amu, asd, f, d, d_sd, d_cov, N, sf, tmax, stochd=TRUE, stoc
     A[ps][A[ps]>amax]<-rnorm(sum(A[ps]>amax), amu, asd)
   }
   
-  odepars<-list(A=A, Ifrac=Ifrac)
+  odepars<-list(A=A, Ifrac=Ifrac, Iloss=Iloss)
   
   while(n <= nobs) {
     if(n==2) {

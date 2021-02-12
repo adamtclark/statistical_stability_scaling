@@ -18,6 +18,7 @@ f<-1 #average time between disturbances (1/lambda in text)
 sf<-0.1 #sampling interval
 tmax<-120 #maximum time for simulation
 d_cov<-d_cov0<-(d_sd)^2/2 #covariance in disturbance size among patches
+rsd = 0.1 # standard deviation for r
 
 ##################################
 #simulate varying spatial grain, no dispersal
@@ -29,25 +30,28 @@ Ilst<-seq(0, 2, by=0.1) #disperal rates to test
 niter<-1000 #number of iterations
 
 #only run if no saved simulation is available
-if(sum(grep("estmat_sp.csv", dir("datout/")))==0) {
+if(sum(grep("estmat_sp_210209.csv", dir("datout/")))==0) {
   Alst<-1:30
   niter<-1000
   d_cov<-d_cov0
   estmat<-as.matrix(data.frame(iter=rep(niter, each=length(Alst)), tsmp=rep(Alst, niter),
                      N=NA, n=NA,
-                     var=NA, f=NA, r=NA, r_naive=NA, d_sd=NA, d_sd_naive=NA))
+                     var=NA, f=NA, r_median=NA, d_sd_true = NA))
   
   n<-1
   for(i in 1:niter) {
     #simulate all max(Alst) patches
-    dtot<-symdynN(r = r, amu=0, asd=0, f=f, d=d,
+    ruse = abs(rnorm(max(Alst), r, rsd))
+    tmpout<-symdynN(r = ruse, amu=0, asd=0, f=f, d=d,
                   d_sd=d_sd, d_cov=d_cov, N=max(Alst),
-                  sf=sf, tmax=tmax, stochd = TRUE, stocht = TRUE, as.matrix = TRUE, Ifrac=0, dffun = df_col)
+                  sf=sf, tmax=tmax, stochd = TRUE, stocht = TRUE, as.matrix = TRUE, Ifrac=0, dffun = df_col, fullout = TRUE)
+    dtot<-as.matrix(tmpout$datout)
     dtot<-dtot[dtot[,"time"]>20,] #throw out burn-in time
     
     for(j in 1:length(Alst)) {
       #subsample a subset of patches
-      dtmp<-dtot[,c(1, 2, sample((1:max(Alst))+2, Alst[j])),drop=FALSE]
+      smp = sample((1:max(Alst))+2, Alst[j])
+      dtmp<-dtot[,c(1, 2, smp),drop=FALSE]
       estmat[n,"N"]<-Alst[j]
       estmat[n,"n"]<-nrow(dtmp)
       #observations are summed abundance across sampled patches
@@ -59,34 +63,17 @@ if(sum(grep("estmat_sp.csv", dir("datout/")))==0) {
       #mean disturbance frequencey
       estmat[n,"f"]<-(max(dtmp[,"time"])-min(dtmp[,"time"]))/sum(dtmp[,"disturbed"][-1])
   
-      #get corrected parameter estimates
-      x0<-xsum[-nrow(dtmp)]
       dt<-mean(diff(dtmp[,"time"]))
-      ndist<-dtmp[,"disturbed"][-1]
-      x1<-xsum[-1]
-      x12<-x1^2
       
-      d_sd0<-sqrt((Alst[j]^2-1)*d_cov+Alst[j]*d_sd^2)
-      moddat<-data.frame(x12=x12, x0=x0, dt=dt, ndist=ndist)
-      mod2<-try(gnls(sqrt(x12)~sqrt(xt2fun(x0, r=exp(r), d=0, d_sd=exp(d_sd), dt, ndist)), data=moddat,
-                     start=c(r=log(r+runif(1, min=-0.1, max = 0.1)), d_sd=log(d_sd0)), weights = varExp(form=~fitted(.))), silent = TRUE)
+      # record true disturbance strength
+      estmat[n,"d_sd_true"]<-sd(rowSums(tmpout$dquant[,smp-2,drop=FALSE])) #achieved disturbance standard deviations
       
-      #if model converges, save paramter values
-      if(!is.character(mod2) & !is.null(mod2)) {
-        estmat[n,"d_sd"]<-exp(unname(coef(mod2)["d_sd"]))
-        estmat[n,"r"]<-exp(unname(coef(mod2)["r"]))
-      }
-      
-      #raw estimate of d_sd
-      disttm_backward<-which(c(dtmp[,"disturbed"][-1], 0)==1 & dtmp[,"disturbed"]==0)
-      if(sum(disttm_backward)>0) {
-        estmat[n,"d_sd_naive"]<-sd(xsum[disttm_backward+1]-xsum[disttm_backward])
-      }
-      
-      #raw estimate of r
+      #estimate realized r
       disttm_forward<-which(c(dtmp[,"disturbed"][-1], 1)==0 & dtmp[,"disturbed"]==1)
-      if(sum(disttm_backward)>0) {
-        estmat[n,"r_naive"]<-mean(log(xsum[disttm_forward+1]/xsum[disttm_forward])/dt)
+      if(sum(disttm_forward)>0) {
+        tmpr = suppressWarnings(log(xsum[disttm_forward+1]/xsum[disttm_forward])/dt)
+        tmpr = tmpr[is.finite(tmpr)]
+        estmat[n,"r_median"]<-median(tmpr)
       }
       n<-n+1
     }
@@ -98,21 +85,27 @@ if(sum(grep("estmat_sp.csv", dir("datout/")))==0) {
   ##################################
   #simulate varying spatial grain, with dispersal
   ##################################
+  set.seed(200209) #set random seed
+  
   A<-c(2)
-  Ilst<-seq(0, 2, by=0.1)
+  Ilst<-seq(0, 2, by=0.2)
   d_cov<-0
   niter<-1000
   estmat_disp<-as.matrix(data.frame(iter=rep(niter, each=length(Ilst)), tsmp=rep(Ilst, niter),
                                n=NA, I=NA,
-                               var=NA, f=NA, r=NA, r_naive=NA, d_sd=NA, d_sd_naive=NA,
+                               var=NA, f=NA, r_median=NA, d_sd_true=NA,
                                var_sp=NA, cor_sp=NA))
   n<-1
   for(i in 1:niter) {
     for(j in 1:length(Ilst)) {
+      ruse = abs(rnorm(max(A), r, rsd))
+      
+      
       #simulate dynamics
-      dtmp<-symdynN(r = r, amu=0, asd=0, f=f, d=d,
+      tmpout<-symdynN(r = ruse, amu=0, asd=0, f=f, d=d,
                     d_sd=d_sd, d_cov=d_cov, N=A,
-                    sf=sf, tmax=tmax, stochd = TRUE, stocht = TRUE, as.matrix = TRUE, Ifrac=Ilst[j], dffun = df_col)
+                    sf=sf, tmax=tmax, stochd = TRUE, stocht = TRUE, as.matrix = TRUE, Ifrac=Ilst[j], dffun = df_col, fullout = TRUE)
+      dtmp<-as.matrix(tmpout$datout)
       #remove first 20 steps for burn-in
       dtmp<-dtmp[dtmp[,"time"]>20,]
       
@@ -121,6 +114,8 @@ if(sum(grep("estmat_sp.csv", dir("datout/")))==0) {
       
       #observation is summed abundance across the plots
       xsum<-rowSums(dtmp[,-c(1:2),drop=FALSE])
+      
+      dt<-mean(diff(dtmp[,"time"]))
       
       #variance
       varest<-mean(xsum^2,na.rm=T)
@@ -133,34 +128,15 @@ if(sum(grep("estmat_sp.csv", dir("datout/")))==0) {
       cvtmp<-cov(dtmp[,-c(1:2),drop=FALSE])
       estmat_disp[n,"cor_sp"]<-mean(cvtmp[row(cvtmp)!=col(cvtmp)])
       
-      #get corrected parameter estimates
-      x0<-xsum[-nrow(dtmp)]
-      dt<-mean(diff(dtmp[,"time"]))
-      ndist<-dtmp[,"disturbed"][-1]
-      x1<-xsum[-1]
-      x12<-x1^2
+      # record true disturbance strength
+      estmat_disp[n,"d_sd_true"]<-sd(rowSums(tmpout$dquant)) #achieved disturbance standard deviations
       
-      d_sd0<-sqrt((Alst[j]^2-1)*d_cov+Alst[j]*d_sd^2)
-      moddat<-data.frame(x12=x12, x0=x0, dt=dt, ndist=ndist)
-      mod2<-try(gnls(sqrt(x12)~sqrt(xt2fun(x0, r=exp(r), d=0, d_sd=exp(d_sd), dt, ndist)), data=moddat,
-                     start=c(r=log(r+runif(1, min=-0.1, max = 0.1)), d_sd=log(d_sd0)), weights = varExp(form=~fitted(.))), silent = TRUE)
-      
-      #record values if model converges
-      if(!is.character(mod2) & !is.null(mod2)) {
-        estmat_disp[n,"d_sd"]<-exp(unname(coef(mod2)["d_sd"]))
-        estmat_disp[n,"r"]<-exp(unname(coef(mod2)["r"]))
-      }
-      
-      #raw estimate of d_sd
-      disttm_backward<-which(c(dtmp[,"disturbed"][-1], 0)==1 & dtmp[,"disturbed"]==0)
-      if(sum(disttm_backward)>0) {
-        estmat_disp[n,"d_sd_naive"]<-sd(xsum[disttm_backward+1]-xsum[disttm_backward])
-      }
-      
-      #raw estimate of r
+      #estimate realized r
       disttm_forward<-which(c(dtmp[,"disturbed"][-1], 1)==0 & dtmp[,"disturbed"]==1)
-      if(sum(disttm_backward)>0) {
-        estmat_disp[n,"r_naive"]<-mean(log(xsum[disttm_forward+1]/xsum[disttm_forward])/dt)
+      if(sum(disttm_forward)>0) {
+        tmpr = suppressWarnings(log(xsum[disttm_forward+1]/xsum[disttm_forward])/dt)
+        tmpr = tmpr[is.finite(tmpr)]
+        estmat_disp[n,"r_median"]<-median(tmpr)
       }
       n<-n+1
     }
@@ -169,19 +145,19 @@ if(sum(grep("estmat_sp.csv", dir("datout/")))==0) {
     }
   }
   
-  write.csv(estmat, "datout/estmat_sp.csv", row.names=F)
-  write.csv(estmat_disp, "datout/estmat_sp_disp.csv", row.names=F)
+  write.csv(estmat, "datout/estmat_sp_210209.csv", row.names=F)
+  write.csv(estmat_disp, "datout/estmat_sp_disp_210209.csv", row.names=F)
 } else {
-  estmat<-read.csv("datout/estmat_sp.csv")
-  estmat_disp<-read.csv("datout/estmat_sp_disp.csv")
+  estmat<-read.csv("datout/estmat_sp_210209.csv")
+  estmat_disp<-read.csv("datout/estmat_sp_disp_210209.csv")
 }
 
-pdf("figures/spatial_grain.pdf", width=3, height=6, colormodel = "cmyk", useDingbats = FALSE)
+pdf("figures/spatial_grain_210209.pdf", width=3, height=6, colormodel = "cmyk", useDingbats = FALSE)
     par(mfcol=c(3,1), mar=c(2,4,1,1), oma=c(2,1.5,0,0))
     
     #r
-    ps<-is.finite(estmat[,"r"])
-    pltqt(estmat[ps,"N"], estmat[ps,"r"], "", r, domod=FALSE, do_N = FALSE, plog = "", xlab = "spatial grain", ylim = c(0.9, 1.1), jfac=1, cluse = collst_attributes[2])
+    ps<-is.finite(estmat[,"r_median"])
+    pltqt(estmat[ps,"N"], -estmat[ps,"r_median"], "", r, domod=FALSE, do_N = FALSE, plog = "", xlab = "spatial grain", ylim = c(0.89, 1.11), jfac=1, cluse = collst_attributes[2])
     title("a.", line=-1.2, adj=0.08, cex.main=1.4)
     mtext(expression(paste("resilience, ", italic(r))), 2, line=3.2)
     
@@ -190,9 +166,9 @@ pdf("figures/spatial_grain.pdf", width=3, height=6, colormodel = "cmyk", useDing
     
     #scaling relationship for d_sd
     sd_N<-data.frame(A=Asq, d_sd=sqrt((d_sd)^2*Asq*(1+(Asq-1)*d_cov0/(d_sd)^2)))
-    ps<-is.finite(estmat[,"r"])
+    ps<-is.finite(estmat[,"d_sd_true"])
     #back-calculate from corrected r value
-    pltqt(estmat[ps,"N"], sqrt(estmat[ps,"r"]*(2*f*estmat[ps,"var"])), "", sd_N, domod=FALSE, do_N = FALSE, plog = "", xlab = "spatial grain", ylim = c(0, 8), jfac=1, cluse = collst_attributes[1])
+    pltqt(estmat[ps,"N"], estmat[ps,"d_sd_true"], "", sd_N, domod=FALSE, do_N = FALSE, plog = "", xlab = "spatial grain", ylim = c(0, 8), jfac=1, cluse = collst_attributes[1])
     title("b.", line=-1.2, adj=0.04, cex.main=1.4)
     mtext(expression(paste("resistance"^{-1}, ", ", italic(sigma))), 2, line=3.2)
     
@@ -206,19 +182,20 @@ pdf("figures/spatial_grain.pdf", width=3, height=6, colormodel = "cmyk", useDing
     mtext("spatial scale", 1, line = 2.5, outer=F, adj = 0.5)
 dev.off()
 
-pdf("figures/spatial_grain_dispersal_patch_level.pdf", width=6, height=4, colormodel = "cmyk", useDingbats = FALSE)
+pdf("figures/spatial_grain_dispersal_patch_level_210209.pdf", width=6, height=4, colormodel = "cmyk", useDingbats = FALSE)
   par(mfrow=c(2,2), mar=c(2,4,1,1), oma=c(2,1,0,0))
   
   #r
-  ps<-is.finite(estmat_disp[,"r"])
-  pltqt(estmat_disp[ps,"I"], estmat_disp[ps,"r"], "", r, domod=FALSE, do_N = FALSE, plog = "", xlab = "dispersal rate", ylim = c(0.9, 1.12), qtp = c(-1, 1), jfac = 1, cluse = collst_attributes[2])
+  ps<-is.finite(estmat_disp[,"r_median"])
+  pltqt(estmat_disp[ps,"I"], -estmat_disp[ps,"r_median"], "", r, domod=FALSE, do_N = FALSE, plog = "", xlab = "dispersal rate", ylim = c(0.9, 1.12), qtp = c(-1, 1), jfac = 1, cluse = collst_attributes[2])
   mtext(expression(paste("meta. resilience")), 2, line=3.1)
   title("a.", line=-1, adj=0.04, cex.main=1.2)
   
   #d_sd
   sd_N<-sqrt((d_sd)^2*A) #recall, d_cov=0
-  ps<-is.finite(estmat_disp[,"r"])
-  pltqt(estmat_disp[ps,"I"], sqrt(estmat_disp[ps,"r"]*(2*f*estmat_disp[ps,"var"])), "", sd_N, domod=FALSE, do_N = FALSE, plog = "", xlab = "dispersal rate", ylim=c(0.38, 0.52), jfac = 1, cluse = collst_attributes[1])
+  ps<-is.finite(estmat_disp[,"d_sd_true"])
+  pltqt(estmat_disp[ps,"I"], estmat_disp[ps,"d_sd_true"], "", sd_N, domod=FALSE, do_N = FALSE, plog = "", xlab = "dispersal rate", ylim=c(0.38, 0.52), jfac = 1, cluse = collst_attributes[1])
+  #pltqt(estmat_disp[ps,"I"], sqrt(estmat_disp[ps,"r"]*(2*f*estmat_disp[ps,"var"])), "", sd_N, domod=FALSE, do_N = FALSE, plog = "", xlab = "dispersal rate", ylim=c(0.38, 0.52), jfac = 1, cluse = collst_attributes[1])
   mtext(expression(paste("meta. resistance"^{-1})), 2, line=3.1)
   title("b.", line=-1, adj=0.04, cex.main=1.2)
   

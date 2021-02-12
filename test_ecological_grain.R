@@ -31,21 +31,20 @@ niter<-1000 #number of iterations
 estmat<-as.matrix(data.frame(iter=rep(niter, each=length(Nlst)), tsmp=rep(Nlst, niter),
                              N=NA, n=NA,
                              var=NA, f=NA, r=NA, r_naive=NA, r_naive_median=NA, r_naive_median_bounded=NA,
-                             d_sd=NA, d_sd_naive=NA,
                              var_sp=NA, cov_sp=NA,
                              var_dist=NA, cov_dist=NA,
                              d_sd_true=NA,
                              sumcovmat_sp=NA, sumcovmat_dist=NA))
 
 #only run if no saved simulation is available
-if(sum(grep("estmat_ec.csv", dir("datout/")))==0) {
+if(sum(grep("estmat_ec_201209.csv", dir("datout/")))==0) {
   #simulate samplings of different numbers of species
   n<-1
   for(i in 1:niter) {
     m<-1
     #exclude runs where system "blows up"
     while(m==1 || max(abs(dtot[,-c(1:2)]))>(K*3)) {
-      tmpout<-symdynN(r = r, amu=amu, asd=asd, f=f, d=d,
+      tmpout<-symdynN(r = rnorm(max(Nlst), r, asd), amu=amu, asd=asd, f=f, d=d,
                     d_sd=d_sd, d_cov=d_cov, N=max(Nlst),
                     sf=sf, tmax=tmax, stochd = TRUE, stocht = TRUE, fullout = TRUE, amax = 0)
       dtot<-as.matrix(tmpout$datout)
@@ -118,9 +117,9 @@ if(sum(grep("estmat_ec.csv", dir("datout/")))==0) {
     }
   }                                        
   
-  write.csv(estmat, "datout/estmat_ec.csv", row.names=F)
+  write.csv(estmat, "datout/estmat_ec_201209.csv", row.names=F)
 } else {
-  estmat<-read.csv("datout/estmat_ec.csv")
+  estmat<-read.csv("datout/estmat_ec_201209.csv")
 }
 
 #get r vs. time:
@@ -128,21 +127,21 @@ set.seed(1202)
 ntm<-10
 dtp<-0.1
 
-if(sum(grep("estmat_ec_r.csv", dir("datout/")))==0) {
+if(sum(grep("estmat_ec_r_201209.csv", dir("datout/")))==0) {
   #calculate r for different sampling frequencies
   rmat<-matrix(nrow=niter, ncol=ntm/dtp)
   for(ii in 1:niter) {
     m<-1
     while(m==1 || max(abs(dtot[,-c(1:2)]))>(K*3)) {
       #burn-in
-      dtot0<-symdynN(r = r, amu=amu, asd=asd, f=f, d=d,
+      dtot0<-symdynN(r = rnorm(max(Nlst), r, asd), amu=amu, asd=asd, f=f, d=d,
                     d_sd=d_sd, d_cov=d_cov, N=max(Nlst),
                     sf=1, tmax=20, stochd = TRUE, stocht = TRUE, as.matrix = TRUE, amax = 0,
                     xstart = rnorm(max(Nlst), 0, sqrt(var_approx(r, f, d_sd))))
       x0<-unname(dtot0[nrow(dtot0),-c(1:2)])
       
       #simulation
-      dtot<-symdynN(r = r, amu=amu, asd=asd, f=f, d=0,
+      dtot<-symdynN(r = rnorm(max(Nlst), r, asd), amu=amu, asd=asd, f=f, d=0,
                     d_sd=0, d_cov=0, N=max(Nlst),
                     sf=dtp, tmax=ntm, stochd = TRUE, stocht = TRUE, as.matrix = TRUE, amax = 0,
                     xstart = x0+rnorm(max(Nlst), 0, d_sd))
@@ -160,15 +159,15 @@ if(sum(grep("estmat_ec_r.csv", dir("datout/")))==0) {
       cat(paste(round(ii/niter,2), ";"))
     }
   }
-  write.csv(rmat, "datout/estmat_ec_r.csv", row.names = FALSE)
+  write.csv(rmat, "datout/estmat_ec_r_201209.csv", row.names = FALSE)
 } else {
-  rmat<-read.csv("datout/estmat_ec_r.csv")
+  rmat<-read.csv("datout/estmat_ec_r_201209.csv")
 }
 
 padj<-c(-1, 0.02, 1.4)
 qtlu<-0.975
 
-pdf("figures/ecological_grain_time_effect.pdf", width=3, height=3, colormodel = "cmyk", useDingbats = FALSE)
+pdf("figures/ecological_grain_time_effect_201209.pdf", width=3, height=3, colormodel = "cmyk", useDingbats = FALSE)
   par(mfrow=c(1,1), mar=c(3,4,1,1), oma=c(0.5,1.5,0,0))
   Asq<-seq(1, max(Nlst), by=0.1)
   Asq_small<-seq(1, max(Nlst))
@@ -186,7 +185,7 @@ pdf("figures/ecological_grain_time_effect.pdf", width=3, height=3, colormodel = 
   #title("a.", line=padj[1], adj=padj[2]+0.06, cex.main=padj[3])
 dev.off()
 
-pdf("figures/ecological_grain.pdf", width=3, height=6, colormodel = "cmyk", useDingbats = FALSE)
+pdf("figures/ecological_grain_201209.pdf", width=3, height=6, colormodel = "cmyk", useDingbats = FALSE)
   par(mfcol=c(3,1), mar=c(2,4,1,1), oma=c(2,1.5,0,0))
 
   #r vs. number of species
