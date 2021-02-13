@@ -234,18 +234,18 @@ if(sum(grep("estmat_sp_disp_open_210209.csv", dir("datout/")))==0) {
   estmat_disp<-read.csv("datout/estmat_sp_disp_open_210209.csv")
 }
 
-pdf("figures/spatial_grain_dispersal_patch_level_open_210209.pdf", width=6, height=4, colormodel = "cmyk", useDingbats = FALSE)
+pdf("figures/spatial_grain_dispersal_patch_level_open_210209.pdf", width=6, height=6, colormodel = "cmyk", useDingbats = FALSE)
   par(mfrow=c(3,2), mar=c(2,4,1,1), oma=c(2,1,0,0))
   
   #x
   pltqt(estmat_disp[,"lossrate"], (estmat_disp[,"meanx1"]+estmat_disp[,"meanx2"])/2, "", r, domod=FALSE, do_N = FALSE, plog = "", xlab = "loss rate", ylim = c(-0.5, 0.05), qtp = c(-1, 1), jfac = 1, cluse = "darkgrey")
-  mtext(expression(paste("patch-level x")), 2, line=3.1)
+  mtext(expression(paste("patch-level mean x")), 2, line=3.1)
   title("a.", line=-1, adj=0.04, cex.main=1.2)
   xstar = r*Kuse/(r+lossratelst)-Kuse
   lines(lossratelst, xstar, lty = 2)
   
   pltqt(estmat_disp[,"lossrate"], estmat_disp[,"meanxsum"], "", r, domod=FALSE, do_N = FALSE, plog = "", xlab = "loss rate", ylim = c(-1, 0.05), qtp = c(-1, 1), jfac = 1, cluse = "darkgrey")
-  mtext(expression(paste("meta. x")), 2, line=3.1)
+  mtext(expression(paste("meta. mean x")), 2, line=3.1)
   title("b.", line=-1, adj=0.04, cex.main=1.2)
   lines(lossratelst, A*xstar, lty = 2)
   
