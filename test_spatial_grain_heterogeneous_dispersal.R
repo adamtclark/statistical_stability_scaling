@@ -138,6 +138,7 @@ dev.off()
 ##################################
 #set parameters
 Kuse = 1
+lossratelst = seq(0, 1, by =0.2) # rate for dispersal that leaves the simulated region
 
 #only run if no saved simulation is available
 if(sum(grep("estmat_sp_disp_open_210209.csv", dir("datout/")))==0) {
@@ -147,11 +148,10 @@ if(sum(grep("estmat_sp_disp_open_210209.csv", dir("datout/")))==0) {
   Ilst<-1
   d_cov<-0
   niter<-1000
-  lossratelst = seq(0, 1, by =0.2) # rate for dispersal that leaves the simulated region
   estmat_disp<-as.matrix(data.frame(iter=rep(niter, each=length(lossratelst)), tsmp=rep(lossratelst, niter),
                                     n=NA, I=NA, lossrate = NA,
                                     meanx1 = NA, meanx2 = NA, meanxsum = NA,
-                                    var=NA, distx = NA, f=NA, r_median=NA, d_sd_true=NA,
+                                    var=NA, distx = NA, f=NA, r_median=NA, r_detrended_median = NA, d_sd_true=NA,
                                     var_sp=NA, cor_sp=NA))
 
   
@@ -178,14 +178,13 @@ if(sum(grep("estmat_sp_disp_open_210209.csv", dir("datout/")))==0) {
       
       #observation is summed abundance across the plots
       xsum<-rowSums(dtmp[,-c(1:2),drop=FALSE])
-      
+
       #save abundances
       estmat_disp[n,"meanxsum"]<-mean(xsum)
       estmat_disp[n,"meanx1"]<-mean(dtmp[,3])
       estmat_disp[n,"meanx2"]<-mean(dtmp[,4])
  
       
-      lossrate/(r-lossrate)
       estmat_disp[n,"meanx1"]
       estmat_disp[n,"meanx2"]
       
@@ -213,6 +212,16 @@ if(sum(grep("estmat_sp_disp_open_210209.csv", dir("datout/")))==0) {
         tmpr = tmpr[is.finite(tmpr)]
         estmat_disp[n,"r_median"]<-median(tmpr)
       }
+      
+      xstar = r*Kuse/(r+lossratelst[j])-Kuse
+      if(sum(disttm_forward)>0) {
+        tmpxsum = xsum - A*xstar
+        tmpr = suppressWarnings(log(tmpxsum[disttm_forward+1]/tmpxsum[disttm_forward])/dt)
+        tmpr = tmpr[is.finite(tmpr)]
+        estmat_disp[n,"r_detrended_median"]<-median(tmpr)
+      }
+      
+      
       n<-n+1
     }
     if(i/10 == floor(i/10)) {
@@ -226,33 +235,48 @@ if(sum(grep("estmat_sp_disp_open_210209.csv", dir("datout/")))==0) {
 }
 
 pdf("figures/spatial_grain_dispersal_patch_level_open_210209.pdf", width=6, height=4, colormodel = "cmyk", useDingbats = FALSE)
-  par(mfrow=c(2,2), mar=c(2,4,1,1), oma=c(2,1,0,0))
+  par(mfrow=c(3,2), mar=c(2,4,1,1), oma=c(2,1,0,0))
   
-  pltqt(estmat_disp[ps,"lossrate"], (estmat_disp[ps,"meanx1"]+estmat_disp[ps,"meanx2"])/2, "", r, domod=FALSE, do_N = FALSE, plog = "", xlab = "loss rate", ylim = c(-0.5, 0.05), qtp = c(-1, 1), jfac = 1, cluse = "darkgrey")
+  #x
+  pltqt(estmat_disp[,"lossrate"], (estmat_disp[,"meanx1"]+estmat_disp[,"meanx2"])/2, "", r, domod=FALSE, do_N = FALSE, plog = "", xlab = "loss rate", ylim = c(-0.5, 0.05), qtp = c(-1, 1), jfac = 1, cluse = "darkgrey")
   mtext(expression(paste("patch-level x")), 2, line=3.1)
   title("a.", line=-1, adj=0.04, cex.main=1.2)
   xstar = r*Kuse/(r+lossratelst)-Kuse
   lines(lossratelst, xstar, lty = 2)
+  
+  pltqt(estmat_disp[,"lossrate"], estmat_disp[,"meanxsum"], "", r, domod=FALSE, do_N = FALSE, plog = "", xlab = "loss rate", ylim = c(-1, 0.05), qtp = c(-1, 1), jfac = 1, cluse = "darkgrey")
+  mtext(expression(paste("meta. x")), 2, line=3.1)
+  title("b.", line=-1, adj=0.04, cex.main=1.2)
+  lines(lossratelst, A*xstar, lty = 2)
   
   
   #r
   ps<-is.finite(estmat_disp[,"r_median"])
   pltqt(estmat_disp[ps,"lossrate"], -estmat_disp[ps,"r_median"], "", r, domod=FALSE, do_N = FALSE, plog = "", xlab = "loss rate", ylim = c(-0.2, 1.12), qtp = c(-1, 1), jfac = 1, cluse = collst_attributes[2])
   mtext(expression(paste("meta. resilience")), 2, line=3.1)
-  title("b.", line=-1, adj=0.04, cex.main=1.2)
+  title("c.", line=-1, adj=0.04, cex.main=1.2)
+  
+  ps<-is.finite(estmat_disp[,"r_detrended_median"])
+  pltqt(estmat_disp[ps,"lossrate"], -estmat_disp[ps,"r_detrended_median"], "", r, domod=FALSE, do_N = FALSE, plog = "", xlab = "loss rate", ylim = c(1, 2), qtp = c(-1, 1), jfac = 1, cluse = collst_attributes[2])
+  mtext(expression(paste("meta. det. resilience")), 2, line=3.1)
+  title("d.", line=-1, adj=0.04, cex.main=1.2)
+  lines(lossratelst, lossratelst+r, lty = 3)
   
   
   #variance
   var_N<-var_approx(r,f,d_sd)*A #recall, d_cov=0
-  pltqt(estmat_disp[,"lossrate"], estmat_disp[,"var"], "", truev = var_N, do_N = FALSE, domod=FALSE, plog = "", mlog="", xlab = "dispersal rate", ylim = c(0.04, 0.12), jfac = 1, cluse = collst_attributes[3])
-  mtext(expression(paste("meta. var(x)")), 2, line=3.1)
-  title("c.", line=-1, adj=0.04, cex.main=1.2)
-  
-  
   pltqt(estmat_disp[,"lossrate"], estmat_disp[,"distx"], "", truev = var_N, do_N = FALSE, domod=FALSE, plog = "", mlog="", xlab = "dispersal rate", ylim = c(0.05, 1.2), jfac = 1, cluse = collst_attributes[3])
-  mtext(expression(paste("meta. mean(x"^2, ")")), 2, line=3.1)
-  title("d.", line=-1, adj=0.04, cex.main=1.2)
+  mtext(expression(paste("meta. invariance"^-1)), 2, line=3.1)
+  title("e.", line=-1, adj=0.04, cex.main=1.2)
   mtext("loss rate", 1, line = 0.5, outer=TRUE)
+  
+  
+  pltqt(estmat_disp[,"lossrate"], estmat_disp[,"var"], "", truev = var_N, do_N = FALSE, domod=FALSE, plog = "", mlog="", xlab = "dispersal rate", ylim = c(0.04, 0.12), jfac = 1, cluse = collst_attributes[3])
+  mtext(expression(paste("meta. det. invariance"^-1)), 2, line=3.1)
+  title("f.", line=-1, adj=0.04, cex.main=1.2)
+  var_N_dyn<-var_approx(r+lossratelst,f,d_sd)*A #recall, d_cov=0
+  lines(lossratelst, var_N_dyn, lty=3)
+
 dev.off()
 
 
