@@ -19,6 +19,7 @@ sf<-0.1 #sampling interval
 tmax<-120 #maximum time for simulation
 d_cov<-d_cov0<-(d_sd)^2/2 #covariance in disturbance size among patches
 rsd = 0.1 # standard deviation for r
+Ksd = 0.1 # standard deviation for K
 
 ##################################
 #simulate varying spatial grain, no dispersal
@@ -26,8 +27,9 @@ rsd = 0.1 # standard deviation for r
 #set parameters
 Alst<-1:30 #patch numbers to test
 A<-c(2) #number of patches for dispersal test
-Ilst<-seq(0, 2, by=0.1) #disperal rates to test
+Ilst<-seq(0, 2, by=0.1) #dispersal rates to test
 niter<-1000 #number of iterations
+Ifuse = 1 # dispersal rate
 
 #only run if no saved simulation is available
 if(sum(grep("estmat_sp_210209.csv", dir("datout/")))==0) {
@@ -36,17 +38,21 @@ if(sum(grep("estmat_sp_210209.csv", dir("datout/")))==0) {
   d_cov<-d_cov0
   estmat<-as.matrix(data.frame(iter=rep(niter, each=length(Alst)), tsmp=rep(Alst, niter),
                      N=NA, n=NA,
-                     var=NA, f=NA, r_median=NA, d_sd_true = NA))
+                     var=NA, f=NA, r_mean=NA, r_median=NA, d_sd_true = NA, meandist = NA))
   
   n<-1
   for(i in 1:niter) {
     #simulate all max(Alst) patches
     ruse = abs(rnorm(max(Alst), r, rsd))
+    Kuse = abs(rnorm(max(Alst), K, Ksd))
+    
     tmpout<-symdynN(r = ruse, amu=0, asd=0, f=f, d=d,
                   d_sd=d_sd, d_cov=d_cov, N=max(Alst),
-                  sf=sf, tmax=tmax, stochd = TRUE, stocht = TRUE, as.matrix = TRUE, Ifrac=0, dffun = df_col, fullout = TRUE)
+                  sf=sf, tmax=tmax, stochd = TRUE, stocht = TRUE, as.matrix = TRUE, Ifrac=Ifuse, dffun = df_col, fullout = TRUE, Ksim = Kuse)
     dtot<-as.matrix(tmpout$datout)
     dtot<-dtot[dtot[,"time"]>20,] #throw out burn-in time
+    
+    dtot_mean = rowMeans(dtot[,-c(1, 2)])
     
     for(j in 1:length(Alst)) {
       #subsample a subset of patches
@@ -56,6 +62,8 @@ if(sum(grep("estmat_sp_210209.csv", dir("datout/")))==0) {
       estmat[n,"n"]<-nrow(dtmp)
       #observations are summed abundance across sampled patches
       xsum<-rowSums(dtmp[,-c(1:2),drop=FALSE])
+      
+      estmat[n,"meandist"]<-median(dtot_mean/(xsum/Alst[j]))
       
       #variance
       varest<-mean(xsum^2,na.rm=T)
@@ -73,6 +81,7 @@ if(sum(grep("estmat_sp_210209.csv", dir("datout/")))==0) {
       if(sum(disttm_forward)>0) {
         tmpr = suppressWarnings(log(xsum[disttm_forward+1]/xsum[disttm_forward])/dt)
         tmpr = tmpr[is.finite(tmpr)]
+        estmat[n,"r_mean"]<-mean(tmpr)
         estmat[n,"r_median"]<-median(tmpr)
       }
       n<-n+1
@@ -83,7 +92,7 @@ if(sum(grep("estmat_sp_210209.csv", dir("datout/")))==0) {
   }
   
   ##################################
-  #simulate varying spatial grain, with dispersal
+  #simulate varying spatial grain, with varying dispersal
   ##################################
   set.seed(200209) #set random seed
   
@@ -99,12 +108,12 @@ if(sum(grep("estmat_sp_210209.csv", dir("datout/")))==0) {
   for(i in 1:niter) {
     for(j in 1:length(Ilst)) {
       ruse = abs(rnorm(max(A), r, rsd))
-      
-      
+      Kuse = K # abs(rnorm(max(A), K, Ksd))
+
       #simulate dynamics
       tmpout<-symdynN(r = ruse, amu=0, asd=0, f=f, d=d,
                     d_sd=d_sd, d_cov=d_cov, N=A,
-                    sf=sf, tmax=tmax, stochd = TRUE, stocht = TRUE, as.matrix = TRUE, Ifrac=Ilst[j], dffun = df_col, fullout = TRUE)
+                    sf=sf, tmax=tmax, stochd = TRUE, stocht = TRUE, as.matrix = TRUE, Ifrac=Ilst[j], dffun = df_col, fullout = TRUE, Ksim = Kuse)
       dtmp<-as.matrix(tmpout$datout)
       #remove first 20 steps for burn-in
       dtmp<-dtmp[dtmp[,"time"]>20,]
@@ -157,9 +166,18 @@ pdf("figures/spatial_grain_210209.pdf", width=3, height=6, colormodel = "cmyk", 
     
     #r
     ps<-is.finite(estmat[,"r_median"])
-    pltqt(estmat[ps,"N"], -estmat[ps,"r_median"], "", r, domod=FALSE, do_N = FALSE, plog = "", xlab = "spatial grain", ylim = c(0.89, 1.11), jfac=1, cluse = collst_attributes[2])
+    pltqt(estmat[ps,"N"], -estmat[ps,"r_median"], "", r, domod=FALSE,
+          do_N = FALSE, plog = "", xlab = "spatial grain", ylim = c(0.89, 1.51),
+          jfac=1, cluse = collst_attributes[2])
     title("a.", line=-1.2, adj=0.08, cex.main=1.4)
     mtext(expression(paste("resilience, ", italic(r))), 2, line=3.2)
+    
+    
+    meandist_lst = tapply(estmat[,"meandist"], estmat[,"N"], function(x) median(x))
+    meanr_lst = tapply(-estmat[,"r_median"], estmat[,"N"], function(x) mean(x))
+    r_est = -meandist_lst*Ifuse+r+Ifuse
+    
+    lines(Alst, r_est, lty = 3)
     
     #d_sd
     Asq<-seq(1, max(Alst), length=1000)
@@ -174,7 +192,7 @@ pdf("figures/spatial_grain_210209.pdf", width=3, height=6, colormodel = "cmyk", 
     
     #variance
     #scaling relationship for variance
-    var_N<-data.frame(Asq, var_approx(r,f,d_sd)*Asq*(1+(Asq-1)*d_cov0/(d_sd)^2))
+    var_N<-data.frame(Alst, var_approx(r_est,f,d_sd)*Alst*(1+(Alst-1)*d_cov0/(d_sd)^2))
     pltqt(estmat[,"N"], estmat[,"var"], "", truev = var_N, do_N = FALSE, domod=FALSE, plog = "", mlog="", xlab = "spatial grain", ylim=c(0, 28), jfac=1, cluse = collst_attributes[3])
     title("c.", line=-1.2, adj=0.04, cex.main=1.4)
     mtext(expression(paste("invariance"^-1, ", ", "var(", italic(x), ")")), 2, line=3.2)
@@ -187,9 +205,12 @@ pdf("figures/spatial_grain_dispersal_patch_level_210209.pdf", width=6, height=4,
   
   #r
   ps<-is.finite(estmat_disp[,"r_median"])
-  pltqt(estmat_disp[ps,"I"], -estmat_disp[ps,"r_median"], "", r, domod=FALSE, do_N = FALSE, plog = "", xlab = "dispersal rate", ylim = c(0.9, 1.12), qtp = c(-1, 1), jfac = 1, cluse = collst_attributes[2])
+  pltqt(estmat_disp[ps,"I"], -estmat_disp[ps,"r_median"], "", r, domod=FALSE, do_N = FALSE,
+        plog = "", xlab = "dispersal rate", ylim = c(0.9, 1.1), qtp = c(-1, 1),
+        jfac = 1, cluse = collst_attributes[2])
   mtext(expression(paste("meta. resilience")), 2, line=3.1)
   title("a.", line=-1, adj=0.04, cex.main=1.2)
+
   
   #d_sd
   sd_N<-sqrt((d_sd)^2*A) #recall, d_cov=0

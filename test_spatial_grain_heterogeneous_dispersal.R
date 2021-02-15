@@ -19,6 +19,7 @@ sf<-0.1 #sampling interval
 tmax<-120 #maximum time for simulation
 d_cov<-d_cov0<-(d_sd)^2/2 #covariance in disturbance size among patches
 rsd = 0.1 # standard deviation for r
+Ksd = 0.1 # standard deviation for K
 
 ##################################
 #simulate varying spatial grain, asymmetrical dispersal
@@ -48,9 +49,10 @@ if(sum(grep("estmat_sp_disp_hetero_210209.csv", dir("datout/")))==0) {
       Iuse = Ilst[j]*c(0.5, 1.5)
       
       ruse = abs(rnorm(max(A), r, rsd))
+      Kuse = K # abs(rnorm(max(A), K, Ksd))
       tmpout<-symdynN(r = ruse, amu=0, asd=0, f=f, d=d,
                     d_sd=d_sd, d_cov=d_cov, N=A,
-                    sf=sf, tmax=tmax, stochd = TRUE, stocht = TRUE, as.matrix = TRUE, Ifrac=Iuse, dffun = df_col, fullout = TRUE)
+                    sf=sf, tmax=tmax, stochd = TRUE, stocht = TRUE, as.matrix = TRUE, Ifrac=Iuse, dffun = df_col, fullout = TRUE, Ksim = Kuse)
       dtmp<-as.matrix(tmpout$datout)
       #remove first 20 steps for burn-in
       dtmp<-dtmp[dtmp[,"time"]>20,]
@@ -128,7 +130,7 @@ pdf("figures/spatial_grain_dispersal_patch_level_hetro_210209.pdf", width=6, hei
   text(1.5, 0.10, expression(paste(italic(A), paste("<var(", italic(x[i]), ")>"))), col=collst_attributes[3], cex=1.2)
   text(1.3, -0.03, expression(paste("(", italic(A)^2, "-", italic(A), ")", paste("<cov(", italic(x[i]), ",", italic(x[j]), ")>"))), col="darkblue", cex=1.2, pos = 3)
   
-  mtext("dispersal rate", 1, line = 0.5, outer=TRUE)
+  mtext("mean dispersal rate", 1, line = 0.5, outer=TRUE)
 dev.off()
 
 
@@ -159,6 +161,7 @@ if(sum(grep("estmat_sp_disp_open_210209.csv", dir("datout/")))==0) {
   for(i in 1:niter) {
     for(j in 1:length(lossratelst)) {
       ruse = abs(rnorm(max(A), r, rsd))
+      Kuse = K # abs(rnorm(max(A), K, Ksd))
       
       #simulate dynamics
       Iuse = Ilst
@@ -166,7 +169,7 @@ if(sum(grep("estmat_sp_disp_open_210209.csv", dir("datout/")))==0) {
       
       tmpout<-symdynN(r = ruse, amu=0, asd=0, f=f, d=d,
                       d_sd=d_sd, d_cov=d_cov, N=A,
-                      sf=sf, tmax=tmax, stochd = TRUE, stocht = TRUE, as.matrix = TRUE, Ifrac=Iuse, Iloss = lossrate, dffun = df_col_loss, fullout = TRUE)
+                      sf=sf, tmax=tmax, stochd = TRUE, stocht = TRUE, as.matrix = TRUE, Ifrac=Iuse, Iloss = lossrate, dffun = df_col_loss, fullout = TRUE, Ksim = Kuse)
       dtmp<-as.matrix(tmpout$datout)
       #remove first 20 steps for burn-in
       dtmp<-dtmp[dtmp[,"time"]>20,]
