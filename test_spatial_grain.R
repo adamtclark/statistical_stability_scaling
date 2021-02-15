@@ -38,7 +38,8 @@ if(sum(grep("estmat_sp_210209.csv", dir("datout/")))==0) {
   d_cov<-d_cov0
   estmat<-as.matrix(data.frame(iter=rep(niter, each=length(Alst)), tsmp=rep(Alst, niter),
                      N=NA, n=NA,
-                     var=NA, f=NA, r_mean=NA, r_median=NA, d_sd_true = NA, meandist = NA))
+                     var=NA, f=NA, r_mean=NA, r_median=NA, d_sd_true = NA, meandist = NA,
+                     var_pt = NA, cov_pt = NA, var_dist = NA, cov_dist = NA))
   
   n<-1
   for(i in 1:niter) {
@@ -53,6 +54,9 @@ if(sum(grep("estmat_sp_210209.csv", dir("datout/")))==0) {
     dtot<-dtot[dtot[,"time"]>20,] #throw out burn-in time
     
     dtot_mean = rowMeans(dtot[,-c(1, 2)])
+    
+    cvtmp<-cov(dtot[,-c(1:2),drop=FALSE]) #observed covariance of species abundances
+    cvdist<-cov(tmpout$dquant) #observed covariance of disturbances
     
     for(j in 1:length(Alst)) {
       #subsample a subset of patches
@@ -84,6 +88,21 @@ if(sum(grep("estmat_sp_210209.csv", dir("datout/")))==0) {
         estmat[n,"r_mean"]<-mean(tmpr)
         estmat[n,"r_median"]<-median(tmpr)
       }
+      
+      #patch-level variance and between-patch covariance
+      estmat[n,"var_pt"]<-mean(diag(cvtmp[smp-2,smp-2]))
+      if(Alst[j]>1) {
+        cvuse<-cvtmp[smp-2,smp-2]
+        estmat[n,"cov_pt"]<-mean(cvuse[row(cvuse)!=col(cvuse)])
+      }
+      
+      #variance and between-species covariance of disturbances
+      estmat[n,"var_dist"]<-mean(diag(cvdist[smp-2,smp-2]))
+      if(Alst[j]>1) {
+        cvuse<-cvdist[smp-2,smp-2]
+        estmat[n,"cov_dist"]<-mean(cvuse[row(cvuse)!=col(cvuse)])
+      }
+      
       n<-n+1
     }
     if(i/10 == floor(i/10)) {
@@ -166,18 +185,29 @@ pdf("figures/spatial_grain_210209.pdf", width=3, height=6, colormodel = "cmyk", 
     
     #r
     ps<-is.finite(estmat[,"r_median"])
-    pltqt(estmat[ps,"N"], -estmat[ps,"r_median"], "", r, domod=FALSE,
+    pltqt(estmat[ps,"N"], -estmat[ps,"r_median"], "", domod=FALSE,
           do_N = FALSE, plog = "", xlab = "spatial grain", ylim = c(0.89, 1.51),
           jfac=1, cluse = collst_attributes[2])
     title("a.", line=-1.2, adj=0.08, cex.main=1.4)
     mtext(expression(paste("resilience, ", italic(r))), 2, line=3.2)
     
+    #meandist_lst = tapply(estmat[,"meandist"], estmat[,"N"], function(x) median(x))
+    #meanr_lst = tapply(-estmat[,"r_median"], estmat[,"N"], function(x) mean(x))
+    #r_est = -meandist_lst*Ifuse+r+Ifuse
+    #lines(Alst, r_est, lty = 3)
     
-    meandist_lst = tapply(estmat[,"meandist"], estmat[,"N"], function(x) median(x))
-    meanr_lst = tapply(-estmat[,"r_median"], estmat[,"N"], function(x) mean(x))
-    r_est = -meandist_lst*Ifuse+r+Ifuse
+    mu_varpt<-mean(estmat$var_pt[estmat$N==30],na.rm=T)
+    mu_covpt<-mean(estmat$cov_pt[estmat$N==30],na.rm=T)
+    mu_dsd<-mean(estmat$var_dist[estmat$N==30],na.rm=T)
+    mu_covdist<-mean(estmat$cov_dist[estmat$N==30],na.rm=T) #basically zero
     
-    lines(Alst, r_est, lty = 3)
+    #total summed covariance for abundance (V) and disturbance (D)
+    Vsummed<-(mu_covpt*(Alst^2-Alst)+mu_varpt*Alst)
+    Dsummed<-(mu_covdist*(Alst^2-Alst)+mu_dsd*Alst)
+    
+    #scaling relationship for r
+    rest<-Dsummed/Vsummed/(2*f)
+    lines(Alst, rest, lty = 2)
     
     #d_sd
     Asq<-seq(1, max(Alst), length=1000)

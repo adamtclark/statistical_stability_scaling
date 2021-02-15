@@ -265,7 +265,6 @@ pdf("figures/spatial_grain_dispersal_patch_level_open_210209.pdf", width=6, heig
   title("d.", line=-1, adj=0.04, cex.main=1.2)
   lines(lossratelst, lossratelst+r, lty = 3)
   
-  
   #variance
   var_N<-var_approx(r,f,d_sd)*A #recall, d_cov=0
   pltqt(estmat_disp[,"lossrate"], estmat_disp[,"distx"], "", truev = var_N, do_N = FALSE, domod=FALSE, plog = "", mlog="", xlab = "dispersal rate", ylim = c(0.05, 1.2), jfac = 1, cluse = collst_attributes[3])
